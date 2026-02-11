@@ -5,10 +5,9 @@ title: Home
 
 ## Steven Lawrence
 
-Senior biostatistician and PhD candidate with 7+ years of experience leading statistical strategy for clinical, observational, and program evaluation studies across academic medical centers and industry/community partners. Expertise in Bayesian hierarchical modeling, longitudinal and time-to-event analysis, and geospatial analytics, with a record of translating complex data into decisions for clinicians, executives, and external stakeholders.
+Biostatistician and data scientist delivering applied statistical work for clinical, observational, and Real-World Evidence studies across NYC health systems, nonprofits, and industry partners. Interests include Bayesian/spatial modeling, geospatial analytics, and health equity, with a focus on translating analyses into decision-ready summaries for stakeholders.
 
 - Email: [steven.lawrence@nyulangone.org](mailto:steven.lawrence@nyulangone.org)
-- Google Scholar: [Profile](https://scholar.google.com/citations?user=OmOghxUAAAAJ&hl=en)
 - GitHub: [Steven-LR](https://github.com/Steven-LR)
 
 ### Resume
