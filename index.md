@@ -152,7 +152,7 @@ show_title: false
   <section id="additional-interests" class="home-section">
     <h2>Additional Interests</h2>
     <div class="card">
-      <p>I am also a jazz musician and recording artist. I have music released on YouTube Music and enjoy creating music when I am not doing science. <a href="https://music.youtube.com/channel/UCrfi8FmBT6ftmzRSl62Zm4Q">Here is my YouTube Music channel</a>.</p>
+      <p>When I am not doing statistics, I volunteer alot by speaking at highschools in collaboration with the Bridge to Biostatistics Program aimed at raising awareness of the impact of our feild in hopes to attract the next generation of biostatisticians. Additionally, I am also a jazz musician and recording artist. I have music released on YouTube Music and enjoy creating music when I am not doing science. <a href="https://music.youtube.com/channel/UCrfi8FmBT6ftmzRSl62Zm4Q">Here is my YouTube Music channel</a>.</p>
     </div>
   </section>
 </div>
