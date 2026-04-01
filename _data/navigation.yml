@@ -1,0 +1,12 @@
+items:
+  - title: Home
+    url: /
+  - title: CV
+    url: /cv/
+  - title: Resume
+    url: /resume/
+  - title: Projects
+    url: /projects/
+  - title: Teaching
+    url: /teaching/
+

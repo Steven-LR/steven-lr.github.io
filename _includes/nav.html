@@ -1,0 +1,23 @@
+<nav class="site-nav" aria-label="Primary">
+  <div class="site-nav__inner">
+    <a class="site-nav__brand" href="{{ '/' | relative_url }}">{{ site.title }}</a>
+    <ul class="site-nav__items">
+      {% assign nav_items = site.data.navigation.items | default: empty %}
+      {% for item in nav_items %}
+        {% assign item_url = item.url | relative_url %}
+        {% assign current = false %}
+        {% if page.url == item.url or page.url == item.url | append: 'index.html' %}
+          {% assign current = true %}
+        {% endif %}
+        <li class="site-nav__item">
+          <a
+            class="site-nav__link{% if current %} is-active{% endif %}"
+            href="{{ item_url }}"
+            {% if current %}aria-current="page"{% endif %}
+          >{{ item.title }}</a>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+</nav>
+
