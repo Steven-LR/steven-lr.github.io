@@ -1,12 +1,14 @@
 items:
   - title: Home
-    url: /
+    url: /#about
+  - title: Selected Manuscripts
+    url: /#manuscripts
+  - title: Projects
+    url: /#projects
+  - title: Teaching
+    url: /#teaching
   - title: CV
     url: /cv/
   - title: Resume
     url: /resume/
-  - title: Projects
-    url: /projects/
-  - title: Teaching
-    url: /teaching/
 
