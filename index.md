@@ -105,6 +105,13 @@ show_title: false
         <p>Designed a HIPAA-compliant protocol for allowing protected patient information to be used to calculate proximity metrics directly within an internal system, keeping identifiable data inside the secure environment.</p>
         <p><a href="{{ '/assets/slides/HPC_protocol.pdf' | relative_url }}">View slides (PDF)</a></p>
       </div>
+      
+      <div class="project-item">
+        <div class="project-item__title">tidyrhrv</div>
+        <p><em>tidyrhrv</em> is an R package for reading, iteratively filtering, and analyzing the time component of multiple heart rate variability datasets at once, supporting reproducible HRV processing and autonomic phenotyping analyses.</p>
+        <p><a href="https://github.com/steven-lr/tidyrhrv">Repository</a> | <a href="https://www.jns-journal.com/article/S0022-510X(21)01556-2/fulltext">Associated abstract</a> | <a href="https://www.jns-journal.com/article/S0022-510X(21)01558-6/fulltext">Related paper</a></p>
+      </div>
+
       <div class="project-item">
         <div class="project-item__title">American Statistical Association - This Is Statistics Data Challenge</div>
         <div class="item-meta">2019</div>
@@ -113,11 +120,6 @@ show_title: false
           <li>Mentor: Emma Benn, DrPH</li>
           <li>Skills: Literature review, univariate and bivariate analysis, <code>choropleth</code>, <code>ggplot2</code>, <code>usmap</code></li>
         </ul>
-      </div>
-      <div class="project-item">
-        <div class="project-item__title">tidyrhrv</div>
-        <p><em>tidyrhrv</em> is an R package for reading, iteratively filtering, and analyzing the time component of multiple heart rate variability datasets at once, supporting reproducible HRV processing and autonomic phenotyping analyses.</p>
-        <p><a href="https://github.com/steven-lr/tidyrhrv">Repository</a> | <a href="https://www.jns-journal.com/article/S0022-510X(21)01556-2/fulltext">Associated paper</a> | <a href="https://www.jns-journal.com/article/S0022-510X(21)01558-6/fulltext">Related paper</a></p>
       </div>
     </div>
   </section>
