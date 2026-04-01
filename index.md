@@ -1,11 +1,14 @@
 ---
 layout: default
 title: Home
+show_title: false
 ---
 
 ## Steven Lawrence
 
-Biostatistician and PhD candidate with 7+ years of experience delivering statistical strategy for clinical research and applied analytics. Expertise in Bayesian/spatial modeling, longitudinal and time-to-event analysis, and geospatial analytics; translate complex data into decision-ready results for clinicians, executives, and program stakeholders.
+<div class="card">
+  <p class="lead">Biostatistician and PhD candidate with 7+ years of experience delivering statistical strategy for clinical research and applied analytics. Expertise in Bayesian/spatial modeling, longitudinal and time-to-event analysis, and geospatial analytics; translate complex data into decision-ready results for clinicians, executives, and program stakeholders.</p>
+</div>
 
 - Email: [steven.lawrence@nyulangone.org](mailto:steven.lawrence@nyulangone.org)
 - GitHub: [Steven-LR](https://github.com/Steven-LR)
