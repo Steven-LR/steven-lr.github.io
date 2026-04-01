@@ -12,16 +12,17 @@
 
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: 74px;
+  scroll-padding-top: 96px;
 }
 
 body {
   color: var(--text);
   background: #ffffff;
+  margin: 0;
 }
 
 .page {
-  padding: 28px 16px 56px;
+  padding: 110px 16px 56px;
 }
 
 .page__inner {
@@ -90,6 +91,11 @@ body {
   padding: 26px 0 10px;
 }
 
+.home-stack {
+  display: block;
+  margin-top: 12px;
+}
+
 .hero-shell {
   max-width: 980px;
   margin: 0 auto;
@@ -101,6 +107,7 @@ body {
   gap: 44px;
   align-items: start;
   justify-content: center;
+  margin-bottom: 10px;
 }
 
 .profile-card {
@@ -275,8 +282,10 @@ body {
 
 /* Top nav */
 .site-nav {
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 100;
   background: var(--nav-bg);
   border-bottom: 1px solid var(--nav-border);
@@ -340,7 +349,7 @@ body {
 
 @media (max-width: 700px) {
   .page {
-    padding-top: 20px;
+    padding-top: 132px;
   }
 
   .page__title {
@@ -363,6 +372,10 @@ body {
 
   .hero-shell {
     max-width: 100%;
+  }
+
+  .hero-grid {
+    gap: 24px;
   }
 
   .profile-card {
