@@ -12,6 +12,7 @@
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 74px;
 }
 
 body {
@@ -24,7 +25,7 @@ body {
 }
 
 .page__inner {
-  max-width: 920px;
+  max-width: 1180px;
   margin: 0 auto;
 }
 
@@ -91,8 +92,8 @@ body {
 
 .hero-grid {
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr);
-  gap: 38px;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: 44px;
   align-items: start;
 }
 
@@ -145,9 +146,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 42px;
-  height: 42px;
-  padding: 0 12px;
+  width: 46px;
+  height: 46px;
+  padding: 0;
   border-radius: 999px;
   border: 1px solid var(--surface-border);
   background: #fff;
@@ -156,6 +157,13 @@ body {
   font-weight: 700;
   line-height: 1;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.social-links svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+  fill: currentColor;
 }
 
 .social-links a:hover {
@@ -257,13 +265,16 @@ body {
 
 /* Top nav */
 .site-nav {
-  position: static;
+  position: sticky;
+  top: 0;
+  z-index: 100;
   background: var(--nav-bg);
   border-bottom: 1px solid var(--nav-border);
+  backdrop-filter: blur(8px);
 }
 
 .site-nav__inner {
-  max-width: 920px;
+  max-width: 1180px;
   margin: 0 auto;
   padding: 12px 16px;
   display: flex;
@@ -338,6 +349,10 @@ body {
   .hero-grid,
   .section-grid {
     grid-template-columns: 1fr;
+  }
+
+  .profile-card {
+    max-width: 420px;
   }
 }
 

@@ -19,7 +19,7 @@
 
     <main class="page">
       <div class="page__inner">
-        {% if page.title and page.show_title == false %}
+        {% if page.title and page.show_title != false %}
           <header class="page__header">
             <h1 class="page__title">{{ page.title }}</h1>
           </header>

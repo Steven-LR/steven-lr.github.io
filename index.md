@@ -12,10 +12,26 @@ show_title: false
       <div class="profile-role">Doctoral Candidate</div>
       <div class="profile-org">NYU Grossman School of Medicine</div>
       <div class="social-links">
-        <a href="mailto:steven.lawrence@nyulangone.org" aria-label="Email">Email</a>
-        <a href="https://www.linkedin.com/in/steven-lawrence-bio-math/" aria-label="LinkedIn">in</a>
-        <a href="https://github.com/Steven-LR" aria-label="GitHub">GH</a>
-        <a href="https://scholar.google.com/citations?user=OmOghxUAAAAJ&hl=en" aria-label="Google Scholar">GS</a>
+        <a href="mailto:steven.lawrence@nyulangone.org" aria-label="Email">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 5.5A2.5 2.5 0 0 1 5.5 3h13A2.5 2.5 0 0 1 21 5.5v13a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 18.5zm2 .5v.32l7 5.25 7-5.25V6zm14 2.82-6.4 4.8a1 1 0 0 1-1.2 0L5 8.82V18.5c0 .28.22.5.5.5h13a.5.5 0 0 0 .5-.5z"/>
+          </svg>
+        </a>
+        <a href="https://www.linkedin.com/in/steven-lawrence-bio-math/" aria-label="LinkedIn">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6.94 8.5A1.56 1.56 0 1 1 6.9 5.38 1.56 1.56 0 0 1 7 8.5zM5.5 10h2.9v8.5H5.5zm4.72 0h2.78v1.16h.04c.39-.74 1.34-1.52 2.77-1.52 2.96 0 3.5 1.95 3.5 4.48v4.38h-2.9v-3.88c0-.93-.02-2.11-1.29-2.11-1.3 0-1.5 1.01-1.5 2.05v3.94h-2.9z"/>
+          </svg>
+        </a>
+        <a href="https://github.com/Steven-LR" aria-label="GitHub">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 .5C5.65.5.5 5.65.5 12a11.5 11.5 0 0 0 7.86 10.92c.57.1.78-.25.78-.55l-.02-2.13c-3.2.7-3.88-1.36-3.88-1.36-.52-1.34-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.18 1.77 1.18 1.03 1.76 2.7 1.25 3.36.95.1-.75.4-1.25.72-1.54-2.55-.29-5.24-1.27-5.24-5.66 0-1.25.45-2.27 1.18-3.07-.12-.29-.51-1.47.11-3.06 0 0 .97-.31 3.17 1.17a10.9 10.9 0 0 1 5.78 0c2.2-1.48 3.16-1.17 3.16-1.17.63 1.59.24 2.77.12 3.06.74.8 1.18 1.82 1.18 3.07 0 4.4-2.7 5.36-5.28 5.65.42.36.79 1.07.79 2.16l-.01 3.2c0 .3.2.66.79.55A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5"/>
+          </svg>
+        </a>
+        <a href="https://scholar.google.com/citations?user=OmOghxUAAAAJ&hl=en" aria-label="Google Scholar">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 3 1.5 8.25 12 13.5l8.58-4.29V16H22V8.25zm-6 9.84V16.5c0 2.48 3.13 4.5 6 4.5s6-2.02 6-4.5v-3.66L12 16z"/>
+          </svg>
+        </a>
       </div>
     </div>
 
