@@ -94,6 +94,14 @@ body {
 .home-stack {
   display: block;
   margin-top: 12px;
+  max-width: 980px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.home-stack > .home-section {
+  display: block;
+  width: 100%;
 }
 
 .hero-shell {
@@ -282,11 +290,11 @@ body {
 
 /* Top nav */
 .site-nav {
-  position: fixed;
+  position: fixed !important;
   top: 0;
   left: 0;
   right: 0;
-  z-index: 100;
+  z-index: 1000;
   background: var(--nav-bg);
   border-bottom: 1px solid var(--nav-border);
   backdrop-filter: blur(8px);
