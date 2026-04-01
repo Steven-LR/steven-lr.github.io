@@ -71,7 +71,7 @@ show_title: false
 </section>
 
 <div class="home-stack">
-  <section id="manuscripts" class="home-section">
+  <section id="manuscripts" class="home-section home-section--shade">
     <h2>Selected Manuscripts</h2>
     <div class="manuscript-list">
       <div class="manuscript-item">
@@ -122,7 +122,7 @@ show_title: false
     </div>
   </section>
 
-  <section id="teaching" class="home-section">
+  <section id="teaching" class="home-section home-section--shade">
     <h2>Teaching Opportunities</h2>
     <div class="teaching-list">
       <div class="teaching-item">
@@ -144,6 +144,13 @@ show_title: false
         </ul>
         <p><a href="https://sl-itw.github.io/HU-Workshop/Hampton-Workshop%20(1).html#Day_1:_Afternoon">Follow-along workshop site</a> | <a href="{{ '/assets/slides/Presentation3_day2.pdf' | relative_url }}">Day 2 slide deck</a></p>
       </div>
+    </div>
+  </section>
+
+  <section id="additional-interests" class="home-section">
+    <h2>Additional Interests</h2>
+    <div class="card">
+      <p>I am also a jazz musician and recording artist. I have music released on YouTube Music and enjoy creating music when I am not doing science. <a href="https://music.youtube.com/channel/UCrfi8FmBT6ftmzRSl62Zm4Q">Here is my YouTube Music channel</a>.</p>
     </div>
   </section>
 </div>
