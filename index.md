@@ -5,7 +5,8 @@ show_title: false
 ---
 
 <section id="about" class="home-section">
-  <div class="hero-grid">
+  <div class="hero-shell">
+    <div class="hero-grid">
     <div class="profile-card">
       <img src="{{ '/assets/img/steven-lawrence-headshot.jpg' | relative_url }}" alt="Steven Lawrence headshot" />
       <div class="profile-name">Steven Lawrence</div>
@@ -65,6 +66,7 @@ show_title: false
         <p><strong>CV:</strong> <a href="{{ '/cv/' | relative_url }}">View CV (2025)</a>.</p>
       </div>
     </div>
+  </div>
   </div>
 </section>
 
