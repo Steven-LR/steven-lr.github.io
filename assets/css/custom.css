@@ -1,5 +1,5 @@
 :root {
-  --nav-bg: #ffffff;
+  --nav-bg: #eff6ff;
   --nav-border: rgba(0, 0, 0, 0.08);
   --text: #111827;
   --muted: rgba(17, 24, 39, 0.7);
@@ -8,11 +8,6 @@
   --accent-soft: #dbeafe;
   --surface: #f8fafc;
   --surface-border: #e2e8f0;
-}
-
-/* Layout */
-html {
-  scroll-padding-top: 88px;
 }
 
 body {
@@ -135,9 +130,7 @@ body {
 
 /* Top nav */
 .site-nav {
-  position: sticky;
-  top: 0;
-  z-index: 10;
+  position: static;
   background: var(--nav-bg);
   border-bottom: 1px solid var(--nav-border);
 }
@@ -180,12 +173,12 @@ body {
 
 .site-nav__link:hover {
   color: var(--accent);
-  background: var(--accent-soft);
+  background: transparent;
 }
 
 .site-nav__link.is-active {
   color: var(--accent);
-  background: var(--accent-soft);
+  background: transparent;
   font-weight: 600;
 }
 
