@@ -1,7 +1,6 @@
 ---
 layout: default
 title: Home
-show_title: false
 ---
 
 ## Steven Lawrence
