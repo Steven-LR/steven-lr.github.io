@@ -4,7 +4,7 @@ title:
 permalink: /resume/
 ---
 
-## Resume (PDF)
+
 
 [Download Steven_Lawrence_Resume_2026-02-24.pdf]({{ "/assets/Steven_Lawrence_Resume_2026-02-24.pdf" | relative_url }})
 
