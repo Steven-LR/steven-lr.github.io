@@ -38,7 +38,7 @@ show_title: false
 
       <div>
         <h2>Biography</h2>
-        <p class="lead">Biostatistician and PhD candidate with 7+ years of experience delivering statistical strategy for clinical research and applied analytics. Expertise in Bayesian/spatial modeling, longitudinal and time-to-event analysis, and geospatial analytics; translate complex data into decision-ready results for clinicians, executives, and program stakeholders. CRAN author and maintainer of <em>tidyRHRV</em>.</p>
+        <p class="lead">I am a biostatistician and PhD candidate at NYU Grossman School of Medicine. My work focuses on Bayesian and spatial modeling in clinical research and health. I enjoy using statistics to better understand complex data, especially in the context of translational research. I am also the CRAN author and maintainer of <em>tidyRHRV</em>.</p>
 
         <div class="section-grid">
           <div class="list-card">
