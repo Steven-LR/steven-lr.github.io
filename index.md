@@ -131,7 +131,7 @@ show_title: false
         <div class="teaching-item__title">Teaching Assistantships</div>
         <ul>
           <li>TA, Clinical Trials course, Spring 2024</li>
-          <li>TA, Adjoint RStudio, 2023</li>
+          <li>TA, Adjoint RStudio, 2020</li>
           <li>TA, RStudio Conference with Rob Hyndman, 2020</li>
           <li>Teaching Assistant, NHGRI-funded Clinical Research Education in Genome Science (CRIEGS) short course, 2020</li>
         </ul>
@@ -144,7 +144,7 @@ show_title: false
           <li>Workshop III: Interactive team science-based real world applications of data wrangling and EDA techniques</li>
           <li>Workshop IV: Advanced topics in statistical analysis and programming informed by participant interests</li>
         </ul>
-        <p><a href="https://sl-itw.github.io/HU-Workshop/Hampton-Workshop%20(1).html#Day_1:_Afternoon">Follow-along workshop site</a> | <a href="{{ '/assets/slides/Presentation3_day2.pdf' | relative_url }}">Day 2 slide deck</a></p>
+        <p><a href="https://sl-itw.github.io/HU-Workshop/Hampton-Workshop%20(1).html#Day_1:_Afternoon">Follow-along workshop site</a> | <a href="{{ '/assets/slides/Presentation3_day2.pdf' | relative_url }}">Intro slide deck</a></p>
       </div>
     </div>
   </section>

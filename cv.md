@@ -1,6 +1,6 @@
 ---
 layout: default
-title: CV (2025)
+title: 
 permalink: /cv/
 ---
 
@@ -57,6 +57,12 @@ permalink: /cv/
 ### Earlier Mount Sinai Experience
 
 <div class="cv-entry">
+  <div class="cv-entry__title">Center for Scientific Diversity</div>
+  <div class="cv-entry__meta">Icahn School of Medicine at Mount Sinai, Jul 2020-2025</div>
+  <p>Supported statistics and data science efforts for center initiatives as a graduate research assistant.</p>
+</div>
+
+<div class="cv-entry">
   <div class="cv-entry__title">Graduate School of Biomedical Sciences</div>
   <div class="cv-entry__meta">Icahn School of Medicine at Mount Sinai, Nov 2020</div>
   <p>Performed descriptive statistics to inform master's-level enrollment services in support of evidence-based disparities reporting.</p>
@@ -68,11 +74,7 @@ permalink: /cv/
   <p>Created geospatial, descriptive, and temporal visualizations using Mount Sinai Health System COVID data and contributed to survival-analysis model building.</p>
 </div>
 
-<div class="cv-entry">
-  <div class="cv-entry__title">Center for Scientific Diversity</div>
-  <div class="cv-entry__meta">Icahn School of Medicine at Mount Sinai, Jul 2020-Present</div>
-  <p>Supported statistics and data science efforts for center initiatives as a graduate research assistant.</p>
-</div>
+
 
 <div class="cv-entry">
   <div class="cv-entry__title">Center for Biostatistics Research Intern</div>
