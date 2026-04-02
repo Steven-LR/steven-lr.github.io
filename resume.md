@@ -6,8 +6,6 @@ permalink: /resume/
 
 
 
-[Download Steven_Lawrence_Resume_2026-02-24.pdf]({{ "/assets/Steven_Lawrence_Resume_2026-02-24.pdf" | relative_url }})
-
 <iframe
   src="{{ '/assets/Steven_Lawrence_Resume_2026-02-24.pdf' | relative_url }}"
   width="100%"
