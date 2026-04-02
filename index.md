@@ -63,7 +63,7 @@ show_title: false
 
         <div class="card">
           <p><strong>Resume:</strong> <a href="{{ '/resume/' | relative_url }}">View resume page</a> or <a href="{{ '/assets/Steven_Lawrence_Resume_2026-02-24.pdf' | relative_url }}">download PDF</a>.</p>
-          <p><strong>CV:</strong> <a href="{{ '/cv/' | relative_url }}">View CV (2025)</a>.</p>
+          <p><strong>CV:</strong> <a href="{{ '/cv/' | relative_url }}">View CV</a>.</p>
         </div>
       </div>
     </div>
