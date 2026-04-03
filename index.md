@@ -149,20 +149,25 @@ show_title: false
     </div>
   </section>
 
-  <section id = "About Me (Cover Letter)"
+  <section id = "about-me"
   class = "home-section">
     <h2>About Me</h2>
     <div class = "card">
-      <p> What initially drew me to biostatistics was a lived understanding that what happens inside a home is often shaped by forces outside of it, neighborhood conditions, access to resources, and broader structural factors. These feelings first arrised in highschool while navigating gang vilence, and complex social dynamics that were potentially shaped by pressures we were unaware of. I later came to understand some of these factors as social determinants of health. 
+      <p> 
+      What initially drew me to biostatistics was a lived understanding that what happens inside a home is often shaped by forces outside of it, neighborhood conditions, access to resources, and broader structural factors. These feelings first arrised in highschool while navigating gang vilence, and complex social dynamics that were potentially shaped by pressures we were unaware of. I later came to understand some of these factors as social determinants of health. 
+      </p>
 
+      <p>
       Now, I am a biostatistics doctoral candidate with a focus on spatial modeling, with experience analyzing complex population-level data to understand how place, access, and structural factors influence health outcomes. My work has involved integrating multiple data sources, accounting for uncertainty, and developing methods that better capture real-world conditions to support public health decision-making.
+      </p>
 
+      <p>
       I am motivated by work that moves beyond describing disparities to identifying actionable insights—whether through improving measurement, evaluating interventions, or informing policy. I bring strong quantitative skills, experience working with large administrative and survey datasets, and the ability to clearly communicate findings to both technical and non-technical audiences.
       </p>
     </div>
   </section>
 
-  <section id="additional-interests" class="home-section">
+  <section id="additional-interests" class="home-section home-section--shade">
     <h2>Additional Interests</h2>
     <div class="card">
       <p>When I am not doing statistics, I volunteer alot by speaking at highschools in collaboration with the <a href = "https://www.mskcc.org/education-training/bridge-to-biostats-summer-program-b2bsp">Bridge to Biostatistics Program</a> aimed at raising awareness of the impact of our feild in hopes to attract the next generation of biostatisticians. Additionally, I am also a jazz musician and recording artist. I have music released on YouTube Music and enjoy creating music when I am not doing science. <a href="https://music.youtube.com/channel/UCrfi8FmBT6ftmzRSl62Zm4Q">Here is my YouTube Music channel</a>.</p>
