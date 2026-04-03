@@ -154,7 +154,7 @@ show_title: false
     <h2>About Me</h2>
     <div class = "card">
       <p> 
-      What initially drew me to biostatistics was a lived understanding that what happens inside a home is often shaped by forces outside of it (e.g., neighborhood conditions, access to resources, and broader structural factors). These feelings first arrised in highschool while navigating gang vilence, and complex social dynamics that were potentially shaped by pressures we were unaware of. I later came to understand some of these factors as social determinants of health during a summer program in Undergrad called Biostatistics and Epidemilogy Summer Training program at Columbia University. It is then, I decided to pursur higher education in biostatistics. 
+      What initially drew me to biostatistics was a lived understanding that what happens inside a home is often shaped by forces outside of it (e.g., neighborhood conditions, access to resources, and broader structural factors). These feelings first arrised in highschool while navigating gang vilence, and complex social dynamics that were potentially shaped by pressures we were unaware of. I later came to understand some of these factors as social determinants of health during a summer program in undergrad called Biostatistics and Epidemilogy Summer Training (BEST) program at Columbia University. It is then, I decided to pursue higher education in biostatistics. 
       </p>
 
       <p>
