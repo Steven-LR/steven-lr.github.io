@@ -269,6 +269,41 @@ body {
   color: #0f172a;
 }
 
+/* App listing previews (screenshot thumbnails) */
+a.app-preview {
+  display: block;
+  margin: 0 0 10px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--surface-border);
+  line-height: 0;
+  box-shadow: 0 6px 24px rgba(15, 23, 42, 0.1);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+a.app-preview:hover {
+  box-shadow: 0 10px 32px rgba(37, 99, 235, 0.18);
+  transform: translateY(-1px);
+}
+
+a.app-preview:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+
+a.app-preview img {
+  width: 100%;
+  height: auto;
+  vertical-align: middle;
+  display: block;
+}
+
+.app-preview__caption {
+  margin: 0 0 14px;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
 .item-meta {
   color: var(--muted);
   margin-bottom: 6px;

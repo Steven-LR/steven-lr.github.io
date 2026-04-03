@@ -5,13 +5,13 @@ permalink: /cv/
 ---
 
 <div class="card">
-  <p class="lead">This is the longer-form academic/professional CV that sits alongside the 1-page <a href="{{ '/resume/' | relative_url }}">resume</a>. To avoid repeating the same material across the site, detailed workshop materials live on the <a href="{{ '/teaching/' | relative_url }}">Teaching</a> page and project-specific writeups live on the <a href="{{ '/projects/' | relative_url }}">Projects</a> page.</p>
+  <p class="lead">This is the longer-form academic/professional CV that sits alongside the 1-page <a href="{{ '/resume/' | relative_url }}">resume</a>. Workshop and teaching highlights are on the <a href="{{ '/' | relative_url }}#teaching">home page (Teaching)</a>; project writeups are under <a href="{{ '/' | relative_url }}#projects">Projects</a> on the home page.</p>
 </div>
 
 <ul class="inline-links">
   <li><a href="{{ '/resume/' | relative_url }}">Resume</a></li>
-  <li><a href="{{ '/teaching/' | relative_url }}">Teaching</a></li>
-  <li><a href="{{ '/projects/' | relative_url }}">Projects</a></li>
+  <li><a href="{{ '/' | relative_url }}#teaching">Teaching</a></li>
+  <li><a href="{{ '/' | relative_url }}#projects">Projects</a></li>
 </ul>
 
 ## Contact
@@ -42,76 +42,70 @@ permalink: /cv/
 
 ## Research and Work Experience
 
+<div class="card">
+  <p>Primary training and employment are at <strong>New York University</strong> (doctoral research) and <strong>Icahn School of Medicine at Mount Sinai</strong> (collaborative biostatistics and data science across multiple teams). External roles and consulting are listed separately below.</p>
+</div>
+
+### New York University
+
 <div class="cv-entry">
   <div class="cv-entry__title">Graduate Research Assistant (Doctoral Training)</div>
-  <div class="cv-entry__meta">New York University Vilcek School of Biomedical Sciences, 2021-Present</div>
-  <p>Doctoral research focused on Bayesian/spatial modeling, geospatial analytics, and access-to-care measurement.</p>
-</div>
-
-<div class="cv-entry">
-  <div class="cv-entry__title">Biostatistician / Data Scientist (Consulting and Collaborative Research)</div>
-  <div class="cv-entry__meta">Icahn School of Medicine at Mount Sinai, 2020-2026</div>
-  <p>Collaborative biostatistics and applied data science across clinical research, quality improvement, and program-evaluation projects. Selected work includes telehealth utilization analyses, COVID geospatial analytics, autonomic/HRV phenotyping, bibliometrics tooling for leadership reporting, and supervision of junior statisticians.</p>
-</div>
-
-### Earlier Mount Sinai Experience
-
-<div class="cv-entry">
-  <div class="cv-entry__title">Center for Scientific Diversity</div>
-  <div class="cv-entry__meta">Icahn School of Medicine at Mount Sinai, Jul 2020-2025</div>
-  <p>Supported statistics and data science efforts for center initiatives as a graduate research assistant.</p>
-</div>
-
-<div class="cv-entry">
-  <div class="cv-entry__title">Graduate School of Biomedical Sciences</div>
-  <div class="cv-entry__meta">Icahn School of Medicine at Mount Sinai, Nov 2020</div>
-  <p>Performed descriptive statistics to inform master's-level enrollment services in support of evidence-based disparities reporting.</p>
-</div>
-
-<div class="cv-entry">
-  <div class="cv-entry__title">Disparities Analytics Task Force</div>
-  <div class="cv-entry__meta">Icahn School of Medicine at Mount Sinai, Jun 2020-Sep 2020</div>
-  <p>Created geospatial, descriptive, and temporal visualizations using Mount Sinai Health System COVID data and contributed to survival-analysis model building.</p>
-</div>
-
-
-
-<div class="cv-entry">
-  <div class="cv-entry__title">Center for Biostatistics Research Intern</div>
-  <div class="cv-entry__meta">Icahn School of Medicine at Mount Sinai, Jun 2019-Mar 2020</div>
+  <div class="cv-entry__meta">Vilcek School of Biomedical Sciences, 2021–Present</div>
   <ul>
-    <li><strong>CEYE REDCap Project Development</strong>: Program-evaluation support for the HSMSE Biomedical Enrichment Program; helped integrate REDCap survey workflows. Mentors: Emma Benn, DrPH, and Alyson Mehr.</li>
-    <li><strong>Validating Statistical Models</strong>: Produced statistical modeling and descriptive analyses for preliminary findings on discrimination-related outcomes. Mentors: Emma Benn, DrPH; Uraina Clark, PhD; Jessica Robinson-Papp, MD, MS.</li>
-    <li><strong>Emergency Medicine Health Disparities Summer Research Program</strong>: Estimated geographic and temporal patterns in skin-bleaching query surveillance using Google Trends data with time-series and spatial methods. Mentors: Emma Benn, DrPH, and Lynn Richardson, MD.</li>
+    <li>Bayesian hierarchical and spatial models to quantify access to services in NYC.</li>
+    <li>HIPAA-compliant GIS pipelines on HPC (Singularity, terminal-based workflows).</li>
+    <li>Patient-preferred pharmacy proximity metrics used to quantify barriers to care.</li>
   </ul>
 </div>
 
+### Icahn School of Medicine at Mount Sinai
+
 <div class="cv-entry">
-  <div class="cv-entry__title">Center for Biostatistics Volunteer</div>
-  <div class="cv-entry__meta">Icahn School of Medicine at Mount Sinai, Mar 2018-Jun 2019</div>
+  <div class="cv-entry__title">Biostatistician / Data Scientist (Consulting &amp; Collaborative Research)</div>
+  <div class="cv-entry__meta">2020–2026</div>
+  <p>Collaborative biostatistics and applied data science across clinical research, quality improvement, and program evaluation. Work has engaged multiple labs and institutional programs, including the <strong>PAIRED lab</strong>, <strong>Center for Scientific Workforce Excellence and Advancement (CSWEA)</strong>, <strong>Center for Scientific Diversity</strong>, <strong>Center for Biostatistics</strong>, the <strong>Disparities Analytics Task Force</strong>, and the <strong>Graduate School of Biomedical Sciences</strong> (e.g., enrollment analytics).</p>
   <ul>
-    <li><strong>Biostatistical Consulting</strong>: Mediation analysis and power calculation for the SIBO study. Mentors: Emma Benn, DrPH, and Jessica Robinson-Papp, MD, MS.</li>
-    <li><strong>Biostatistical Methods</strong>: Evaluated methods for re-assessing treatment effects in clinical trials through simulations and literature review. Mentor: Emma Benn, DrPH.</li>
-    <li><strong>ASA This Is Statistics Data Challenge</strong>: Created statewide opioid abuse and poverty visualizations using CDC and U.S. Census data. Expanded summary available on the <a href="{{ '/projects/' | relative_url }}">Projects</a> page.</li>
+    <li>Supervised master’s-level statisticians on quality improvement and automated quality-metrics reporting (2023–2026).</li>
+    <li>Led autonomic heart rate variability (HRV) analyses and phenotyping supporting first- and second-author publications; developed and maintain the <em>tidyRHRV</em> / <a href="https://github.com/steven-lr/tidyrhrv">tidyrhrv</a> package on CRAN (2021–2025).</li>
+    <li>Built web-scraping and PubMed API tooling for bibliometric reporting to leadership (2023–2024).</li>
+    <li>Telehealth utilization analyses pre/during/post shutdown; stakeholder briefings (2021–2022).</li>
+    <li>COVID Wave 1: geospatial maps and testing vs. positivity analyses to inform allocation decisions (2020).</li>
   </ul>
+  <p><strong>Earlier training at Mount Sinai (2018–2020):</strong> Graduate internship and volunteer roles through the Center for Biostatistics—REDCap program evaluation (HSMSE Biomedical Enrichment), discrimination-related outcomes modeling, Google Trends surveillance (Emergency Medicine Health Disparities program), mediation and power for clinical studies, methods simulation work, and the ASA This Is Statistics Data Challenge. (Mentors included Emma Benn, DrPH; Jessica Robinson-Papp, MD, MS; and others.) More detail on the <a href="{{ '/' | relative_url }}#projects">Projects</a> section of the home page.</p>
 </div>
+
+### Other employers and consulting
 
 <div class="cv-entry">
   <div class="cv-entry__title">Data Science Consultant</div>
-  <div class="cv-entry__meta">Graham Windham, 2023-2025</div>
-  <p>Applied analytics, dashboarding, and predictive modeling to support operational decision-making and program monitoring.</p>
+  <div class="cv-entry__meta">Graham Windham, 2023–2025</div>
+  <ul>
+    <li>Leadership dashboards and predictive models for foster care mental health interventions; executive-facing reporting.</li>
+    <li>Secure GIS pipeline for geospatial analytics and reproducible processing to quantify access to high-quality education.</li>
+  </ul>
+</div>
+
+<div class="cv-entry">
+  <div class="cv-entry__title">Data Science Intern — ML fairness evaluation</div>
+  <div class="cv-entry__meta">Nationwide Financial Services, Summer 2021</div>
+</div>
+
+<div class="cv-entry">
+  <div class="cv-entry__title">Additional short-term roles</div>
+  <div class="cv-entry__meta">Selected</div>
+  <p>Memorial Sloan Kettering (Project Manager, Bridge to Biostatistics; Summer 2025); Hampton University (R Workshop Instructor; Summer 2024); UAB (biostatistical consultation, NIS survey-weighted analyses; Fall 2021).</p>
 </div>
 
 ## Teaching Summary
 
 <div class="card">
-  <p>Teaching assistantships, workshop descriptions, and embedded materials are collected on the <a href="{{ '/teaching/' | relative_url }}">Teaching</a> page so they are not duplicated here.</p>
+  <p>Teaching assistantships, workshop descriptions, and embedded materials are summarized under <a href="{{ '/' | relative_url }}#teaching">Teaching</a> on the home page so they are not duplicated here.</p>
 </div>
 
 ## Projects Summary
 
 <div class="card">
-  <p>Project-specific materials, including the HIPAA-compliant proximity metrics protocol slides, the ASA Data Challenge summary, and the <a href="https://github.com/steven-lr/tidyrhrv">tidyrhrv</a> package with associated publications, are collected on the <a href="{{ '/projects/' | relative_url }}">Projects</a> page.</p>
+  <p>Project-specific materials, including the HIPAA-compliant proximity metrics protocol slides, the ASA Data Challenge summary, and the <a href="https://github.com/steven-lr/tidyrhrv">tidyrhrv</a> package with associated publications, are under <a href="{{ '/' | relative_url }}#projects">Projects</a> on the home page.</p>
 </div>
 
 ## Training and Academic Programs
