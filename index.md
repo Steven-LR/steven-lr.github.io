@@ -161,15 +161,15 @@ show_title: false
     <h2>About Me</h2>
     <div class = "card">
       <p> 
-      What initially drew me to biostatistics was a lived understanding that what happens inside a home is often shaped by forces outside of it (e.g., neighborhood conditions, access to resources, and broader structural factors). These feelings first arrised in highschool while navigating gang vilence, and complex social dynamics that were potentially shaped by pressures we were unaware of. I later came to understand some of these factors as social determinants of health during a summer program in undergrad called Biostatistics and Epidemilogy Summer Training (BEST) program at Columbia University. It is then, I decided to pursue higher education in biostatistics. 
+      What initially drew me to biostatistics was a lived understanding that what happens inside a home is often shaped by forces outside of it (e.g., neighborhood conditions, access to resources, and broader structural factors). I first become aware of this in high school while navigating gang violence and complex social dynamics shaped by pressures beyond my control. I later came to understand some of these factors as social determinants of health during a summer program in undergrad called Biostatistics and Epidemiology Summer Training (BEST) program at Columbia University. This experience led me to pursue graduate study in biostatistics.
       </p>
 
       <p>
-      Now, I am a biostatistics doctoral candidate whos research focused on measuing access to health care, and assesing sensitivity in spatial models. I am experienced in analyzing complex population-level data to understand how place, access, and structural factors influence health outcomes. My work has involved integrating multiple data sources, accounting for uncertainty, and developing methods that better capture real-world conditions to support public health decision-making.
+      I am currently a biostatistics doctoral candidate whose research focused on measuring access to health care, and assessing sensitivity in spatial models. I am experienced in analyzing complex population-level data to understand how place, access, and structural factors influence health outcomes. My work has involved integrating multiple data sources, accounting for uncertainty, and developing methods that better capture real-world conditions to support public health decision-making.
       </p>
 
       <p>
-      I am motivated by work that moves beyond describing disparities to identifying actionable insights, whether through improving measurement, evaluating interventions, or informing policy. I bring strong quantitative skills, experience working with large administrative and survey datasets, and the ability to clearly communicate findings to both technical and non-technical audiences. Also, I spend time speaking to highschool students, and participating on graduate student panels to inspire those navigating the education system with my story and the many words of wisdom from my mentors. 
+      I am motivated by work that moves beyond describing disparities to identifying actionable insights, whether through improving measurement, evaluating interventions, or informing policy. I bring strong quantitative skills, experience working with large administrative and survey datasets, and the ability to clearly communicate findings to both technical and non-technical audiences. Also, I spend time speaking to high school students, and participating on graduate student panels to inspire those navigating the education system with my story and the many words of wisdom from my mentors. 
       </p>
     </div>
   </section>
@@ -177,9 +177,9 @@ show_title: false
   <section id="additional-interests" class="home-section home-section--shade">
     <h2>Additional Interests</h2>
     <div class="card">
-      <p>When I am not doing statistics, I volunteer alot by speaking at highschools in collaboration with the <a href = "https://www.mskcc.org/education-training/bridge-to-biostats-summer-program-b2bsp">Bridge to Biostatistics Program</a> aimed at raising awareness of the impact of our feild in hopes to attract the next generation of biostatisticians. Additionally, I am also a jazz musician and recording artist. I have music released on YouTube Music and enjoy creating music when I am not doing science. <a href="https://music.youtube.com/channel/UCrfi8FmBT6ftmzRSl62Zm4Q">Here is my YouTube Music channel</a>.</p>
+      <p>When I am not doing statistics, I volunteer by speaking at high schools in collaboration with the <a href = "https://www.mskcc.org/education-training/bridge-to-biostats-summer-program-b2bsp">Bridge to Biostatistics Program</a> aimed at raising awareness of the impact of our field in hopes to attract the next generation of biostatisticians. I am also a jazz musician and recording artist. I have music released on YouTube Music and enjoy creating music when I am not doing science. <a href="https://music.youtube.com/channel/UCrfi8FmBT6ftmzRSl62Zm4Q">Here is my YouTube Music channel</a>.</p>
 
-      <p> <i>Learn all you can for as long as you can, so that when purpose presents itself you can fulfill it</i></p>
+      <p> <i>Learn all you can for as long as you can, so that when purpose presents itself you can fulfill it</i> - Steven Lawrence</p>
     </div>
   </section>
 </div>
