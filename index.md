@@ -162,7 +162,7 @@ show_title: false
       </p>
 
       <p>
-      I am motivated by work that moves beyond describing disparities to identifying actionable insights, whether through improving measurement, evaluating interventions, or informing policy. I bring strong quantitative skills, experience working with large administrative and survey datasets, and the ability to clearly communicate findings to both technical and non-technical audiences.
+      I am motivated by work that moves beyond describing disparities to identifying actionable insights, whether through improving measurement, evaluating interventions, or informing policy. I bring strong quantitative skills, experience working with large administrative and survey datasets, and the ability to clearly communicate findings to both technical and non-technical audiences. Also, I spend time speaking to highschool students, and participating on graduate student panels to inspire those navigating the education system with my story and the many words of wisdom from my mentors. 
       </p>
     </div>
   </section>
