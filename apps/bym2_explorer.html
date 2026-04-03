@@ -1,0 +1,1696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BYM2 Spatial Explorer</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg:       #0e1117;
+    --surface:  #161b25;
+    --card:     #1c2333;
+    --border:   #2a3347;
+    --accent:   #4f8ef7;
+    --accent2:  #38c9a0;
+    --warn:     #f0a04b;
+    --danger:   #e05c6a;
+    --text:     #e2e8f4;
+    --muted:    #7a8aaa;
+    --mono:     'IBM Plex Mono', monospace;
+    --sans:     'IBM Plex Sans', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    padding: 18px 28px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--surface);
+  }
+
+  .logo {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: 13px; font-weight: 500; color: #fff;
+    flex-shrink: 0;
+  }
+
+  header h1 { font-size: 15px; font-weight: 500; letter-spacing: 0.01em; }
+  header span { font-size: 12px; color: var(--muted); font-family: var(--mono); margin-left: auto; }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 280px 1fr 320px;
+    gap: 0;
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    overflow-y: auto;
+  }
+
+  .section-label {
+    font-size: 9px;
+    font-family: var(--mono);
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .control-group { display: flex; flex-direction: column; gap: 14px; }
+
+  .ctrl { display: flex; flex-direction: column; gap: 5px; }
+
+  .ctrl-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+
+  .ctrl label {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: var(--mono);
+  }
+
+  .ctrl-val {
+    font-size: 12px;
+    font-family: var(--mono);
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--bg);
+    cursor: pointer;
+  }
+
+  select {
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 7px 10px;
+    border-radius: 6px;
+    width: 100%;
+    outline: none;
+    cursor: pointer;
+  }
+
+  select:focus { border-color: var(--accent); }
+
+  .btn {
+    display: flex; align-items: center; justify-content: center; gap: 7px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: none;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+    width: 100%;
+    letter-spacing: 0.04em;
+  }
+
+  .btn:active { transform: scale(0.97); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover:not(:disabled) { opacity: 0.85; }
+
+  .btn-ai { background: linear-gradient(135deg, #7c3aed, #4f8ef7); color: #fff; }
+  .btn-ai:hover:not(:disabled) { opacity: 0.85; }
+
+  /* ── Main ── */
+  .main {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    overflow: hidden;
+  }
+
+  .map-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: var(--bg);
+    position: relative;
+  }
+
+  #grid-canvas {
+    border-radius: 6px;
+    display: block;
+    max-width: 100%;
+    max-height: 500px;
+  }
+
+  .map-label {
+    font-size: 11px;
+    font-family: var(--mono);
+    color: var(--muted);
+    margin-top: 10px;
+    text-align: center;
+  }
+
+  /* colour legend */
+  .legend {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .legend-bar {
+    width: 160px; height: 8px;
+    border-radius: 4px;
+    background: linear-gradient(to right, #1a3a6e, #2563eb, #38c9a0, #fcd34d, #dc2626);
+  }
+
+  .legend-label { font-size: 10px; font-family: var(--mono); color: var(--muted); }
+
+  /* moran scatterplot */
+  .scatter-area {
+    border-top: 1px solid var(--border);
+    padding: 16px 24px;
+    background: var(--surface);
+  }
+
+  #moran-canvas { display: block; }
+
+  /* ── Right panel ── */
+  .right-panel {
+    border-left: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .stats-section {
+    padding: 18px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 11px 13px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .stat-name { font-size: 10px; font-family: var(--mono); color: var(--muted); }
+  .stat-val { font-size: 22px; font-family: var(--mono); font-weight: 500; }
+  .stat-sub { font-size: 10px; font-family: var(--mono); color: var(--muted); }
+
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+  .interp-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-family: var(--mono);
+    font-weight: 500;
+    margin-top: 2px;
+  }
+
+  .badge-cluster { background: rgba(79,142,247,0.2); color: var(--accent); }
+  .badge-dispersed { background: rgba(224,92,106,0.2); color: var(--danger); }
+  .badge-random { background: rgba(122,138,170,0.2); color: var(--muted); }
+
+  .ai-section {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .ai-bubble {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 13px;
+    font-size: 12.5px;
+    line-height: 1.65;
+    color: var(--text);
+    min-height: 80px;
+    white-space: pre-wrap;
+  }
+
+  .ai-bubble.loading {
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .spinner {
+    width: 14px; height: 14px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .error-msg { color: var(--danger); font-family: var(--mono); font-size: 11px; }
+
+  /* api key row */
+  .api-row {
+    display: flex; gap: 6px; align-items: center;
+  }
+
+  .api-row input {
+    flex: 1;
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 7px 9px;
+    border-radius: 6px;
+    outline: none;
+  }
+
+  .api-row input:focus { border-color: var(--accent); }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 4px 0;
+  }
+
+  /* ── Significance hunt toggle ── */
+  .sig-toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 12px;
+    gap: 10px;
+  }
+
+  .sig-toggle-label {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .sig-toggle-label span:first-child {
+    font-size: 11px;
+    font-family: var(--mono);
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .sig-toggle-label span:last-child {
+    font-size: 10px;
+    font-family: var(--mono);
+    color: var(--muted);
+  }
+
+  .toggle-switch {
+    position: relative;
+    width: 36px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+
+  .toggle-switch input {
+    opacity: 0;
+    width: 0; height: 0;
+    position: absolute;
+  }
+
+  .toggle-track {
+    position: absolute;
+    inset: 0;
+    background: var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .toggle-track::after {
+    content: '';
+    position: absolute;
+    top: 3px; left: 3px;
+    width: 14px; height: 14px;
+    background: var(--muted);
+    border-radius: 50%;
+    transition: transform 0.2s, background 0.2s;
+  }
+
+  .toggle-switch input:checked + .toggle-track {
+    background: rgba(79,142,247,0.3);
+    border: 1px solid var(--accent);
+  }
+
+  .toggle-switch input:checked + .toggle-track::after {
+    transform: translateX(16px);
+    background: var(--accent);
+  }
+
+  .sig-hunt-active .btn-primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    animation: pulse-btn 1.4s ease-in-out infinite;
+  }
+
+  @keyframes pulse-btn {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.7; }
+  }
+
+  /* ── Docs tab button in header ── */
+  .docs-tab {
+    margin-left: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 13px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+    letter-spacing: 0.04em;
+  }
+  .docs-tab:hover { color: var(--text); border-color: var(--accent); }
+  .docs-tab.active {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: rgba(79,142,247,0.08);
+  }
+  .docs-tab .tab-icon { font-size: 13px; }
+
+  /* ── Hovering docs panel ── */
+  .docs-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    pointer-events: none;
+  }
+  .docs-overlay.open { display: block; }
+
+  .docs-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(8, 10, 18, 0.55);
+    pointer-events: all;
+    cursor: pointer;
+  }
+
+  .docs-panel {
+    position: absolute;
+    top: 56px; right: 0;
+    width: min(680px, 96vw);
+    height: calc(100vh - 56px);
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    pointer-events: all;
+    display: flex;
+    flex-direction: column;
+    transform: translateX(100%);
+    transition: transform 0.28s cubic-bezier(0.32, 0, 0.15, 1);
+    overflow: hidden;
+  }
+  .docs-overlay.open .docs-panel { transform: translateX(0); }
+
+  .docs-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 22px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .docs-panel-header h2 {
+    font-size: 13px;
+    font-weight: 500;
+    font-family: var(--mono);
+    letter-spacing: 0.06em;
+    color: var(--text);
+  }
+
+  .docs-close {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: color 0.15s, border-color 0.15s;
+    line-height: 1;
+  }
+  .docs-close:hover { color: var(--text); border-color: var(--accent); }
+
+  .docs-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 28px 40px;
+    scroll-behavior: smooth;
+  }
+
+  /* Docs inner nav tabs */
+  .docs-nav {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 26px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0;
+  }
+  .docs-nav-btn {
+    padding: 7px 14px;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: color 0.15s, border-color 0.15s;
+    letter-spacing: 0.04em;
+  }
+  .docs-nav-btn:hover { color: var(--text); }
+  .docs-nav-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .docs-section { display: none; }
+  .docs-section.active { display: block; }
+
+  /* Docs typography */
+  .docs-body h3 {
+    font-size: 12px;
+    font-family: var(--mono);
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 28px 0 12px;
+  }
+  .docs-body h3:first-child { margin-top: 0; }
+
+  .docs-body p {
+    font-size: 13px;
+    line-height: 1.75;
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+
+  .math-block {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    padding: 13px 16px;
+    margin: 14px 0;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--accent2);
+    line-height: 1.8;
+    overflow-x: auto;
+    white-space: pre;
+  }
+
+  .math-inline {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--accent2);
+    background: rgba(56,201,160,0.08);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  .param-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0;
+    font-size: 12.5px;
+  }
+  .param-table th {
+    text-align: left;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 500;
+  }
+  .param-table td {
+    padding: 9px 10px;
+    border-bottom: 1px solid rgba(42,51,71,0.5);
+    vertical-align: top;
+    line-height: 1.55;
+  }
+  .param-table td:first-child {
+    font-family: var(--mono);
+    color: var(--accent2);
+    white-space: nowrap;
+    padding-right: 16px;
+  }
+  .param-table td:last-child { color: var(--text); font-size: 12px; }
+
+  .callout {
+    background: rgba(79,142,247,0.07);
+    border: 1px solid rgba(79,142,247,0.2);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin: 14px 0;
+    font-size: 12.5px;
+    line-height: 1.7;
+    color: var(--text);
+  }
+  .callout strong { color: var(--accent); font-weight: 500; }
+
+  .step-list {
+    list-style: none;
+    counter-reset: step-counter;
+    margin: 14px 0;
+  }
+  .step-list li {
+    counter-increment: step-counter;
+    display: flex;
+    gap: 12px;
+    margin-bottom: 14px;
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--text);
+  }
+  .step-list li::before {
+    content: counter(step-counter);
+    min-width: 22px; height: 22px;
+    border-radius: 50%;
+    background: rgba(79,142,247,0.15);
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 500;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .tries-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-family: var(--mono);
+    font-weight: 500;
+    margin-top: 2px;
+  }
+
+  .tries-found   { background: rgba(56,201,160,0.15); color: var(--accent2); }
+  .tries-capped  { background: rgba(240,160,75,0.15);  color: var(--warn); }
+  .tries-single  { background: rgba(122,138,170,0.12); color: var(--muted); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">B2</div>
+  <h1>BYM2 Spatial Explorer</h1>
+  <span>Poisson · ICAR · Moran's I</span>
+  <button class="docs-tab" id="docs-tab-btn">
+    <span class="tab-icon">📖</span> Model Docs
+  </button>
+</header>
+
+<!-- ════ DOCS OVERLAY PANEL ════ -->
+<div class="docs-overlay" id="docs-overlay">
+  <div class="docs-backdrop" id="docs-backdrop"></div>
+  <div class="docs-panel">
+    <div class="docs-panel-header">
+      <h2>BYM2 · Model Reference</h2>
+      <button class="docs-close" id="docs-close">✕</button>
+    </div>
+    <div class="docs-body">
+
+      <!-- Inner nav -->
+      <div class="docs-nav">
+        <button class="docs-nav-btn active" data-tab="overview">Overview</button>
+        <button class="docs-nav-btn" data-tab="params">Parameters</button>
+        <button class="docs-nav-btn" data-tab="datagen">Data Generation</button>
+        <button class="docs-nav-btn" data-tab="morans">Moran's I</button>
+        <button class="docs-nav-btn" data-tab="tips">Intuition & Tips</button>
+      </div>
+
+      <!-- ── OVERVIEW ── -->
+      <div class="docs-section active" id="tab-overview">
+        <h3>What is BYM2?</h3>
+        <p>The <strong style="color:var(--accent)">BYM2</strong> model (Riebler et al., 2016) is a reparameterisation of the classical Besag-York-Mollié (BYM) model for areal spatial data. It is widely used in disease mapping and spatial epidemiology to decompose regional variation into a <em>structured</em> spatial component and an <em>unstructured</em> iid component.</p>
+        <p>The central innovation is a single mixing parameter <span class="math-inline">φ ∈ [0, 1]</span> that controls how much of the total variance is attributable to spatial autocorrelation vs. pure noise — and this parameter is interpretable on a common scale regardless of the graph structure.</p>
+
+        <h3>The Outcome Model</h3>
+        <p>Counts <span class="math-inline">yᵢ</span> for area <span class="math-inline">i</span> follow a Poisson distribution:</p>
+        <div class="math-block">yᵢ | λᵢ  ~  Poisson( Eᵢ · λᵢ )
+
+log λᵢ  =  β₀ + bᵢ</div>
+        <p>where <span class="math-inline">Eᵢ</span> is the expected count (population-at-risk × reference rate), <span class="math-inline">β₀</span> is the log baseline rate, and <span class="math-inline">bᵢ</span> is the BYM2 random effect.</p>
+
+        <h3>The BYM2 Random Effect</h3>
+        <div class="math-block">bᵢ  =  σ · ( √(1 − φ) · εᵢ  +  √φ · uᵢ )
+
+εᵢ  ~  iid N(0, 1)         (unstructured noise)
+u   ~  N(0, Q★⁻¹)          (spatially structured ICAR)</div>
+        <p>The vector <span class="math-inline">u</span> is drawn from an intrinsic CAR (ICAR) distribution whose precision matrix <span class="math-inline">Q★</span> is scaled so that its average marginal variance equals 1 — making <span class="math-inline">σ²</span> the true marginal variance of <span class="math-inline">bᵢ</span> regardless of φ.</p>
+
+        <div class="callout"><strong>Key insight:</strong> In the classical BYM model, the two variance parameters were not separately identifiable and their scales depended on the graph. BYM2 fixes this by scaling Q★ so that σ and φ are always on a consistent, interpretable scale.</div>
+      </div>
+
+      <!-- ── PARAMETERS ── -->
+      <div class="docs-section" id="tab-params">
+        <h3>Grid & Outcome Parameters</h3>
+        <table class="param-table">
+          <thead><tr><th>Symbol</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>n</td>
+              <td>Grid dimension. The spatial domain is an n × n lattice of equally-sized areas, giving N = n² total regions.</td>
+            </tr>
+            <tr>
+              <td>β₀</td>
+              <td>Log baseline rate. The expected SMR when all random effects are zero is exp(β₀). Set β₀ = 0 for an expected SMR of 1.0 (null baseline).</td>
+            </tr>
+            <tr>
+              <td>E</td>
+              <td>Expected count per area. Larger E means more observed counts, which reduces Poisson noise and lets the spatial signal in bᵢ dominate. Think of E as the population size — larger populations give cleaner spatial patterns.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>BYM2 Parameters</h3>
+        <table class="param-table">
+          <thead><tr><th>Symbol</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>φ (phi)</td>
+              <td>Spatial mixing proportion ∈ [0, 1]. Controls the fraction of total variance attributable to the structured ICAR component.<br><br>
+              φ = 0 → purely iid noise, no spatial autocorrelation.<br>
+              φ = 1 → purely spatial ICAR, maximum autocorrelation.<br>
+              φ = 0.5 → equal mix of structured and unstructured.</td>
+            </tr>
+            <tr>
+              <td>σ (sigma)</td>
+              <td>Marginal standard deviation of the random effects bᵢ. Controls overall heterogeneity across areas. Because Q★ is scaled to have average marginal variance = 1, σ directly sets the spread of bᵢ regardless of φ or the graph structure.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Weight Matrix</h3>
+        <table class="param-table">
+          <thead><tr><th>Type</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>Queen (8-nbr)</td>
+              <td>Cell (r, c) is a neighbour of all 8 surrounding cells — horizontally, vertically, and diagonally adjacent. Produces more neighbours per cell, a denser precision matrix, and smoother spatial fields.</td>
+            </tr>
+            <tr>
+              <td>Rook (4-nbr)</td>
+              <td>Cell (r, c) is a neighbour only of its 4 cardinal neighbours (up, down, left, right). Sparser graph. Interior cells have exactly 4 neighbours; edge and corner cells fewer.</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="callout"><strong>Effect on Moran's I:</strong> Switching from Rook to Queen adds diagonal neighbours, increasing S₀ (sum of weights). For the same spatial field, this generally produces a slightly lower raw Moran's I statistic but does not change the underlying spatial pattern — only the definition of "neighbour."</div>
+      </div>
+
+      <!-- ── DATA GENERATION ── -->
+      <div class="docs-section" id="tab-datagen">
+        <h3>Step-by-Step Data Generation</h3>
+        <ol class="step-list">
+          <li>
+            <div><strong style="color:var(--accent)">Build the adjacency matrix W.</strong><br>
+            For an n × n grid, W is an N × N binary matrix where Wᵢⱼ = 1 if areas i and j are neighbours (Queen or Rook), 0 otherwise. W is symmetric with zero diagonal.</div>
+          </li>
+          <li>
+            <div><strong style="color:var(--accent)">Construct the ICAR precision matrix Q.</strong><br>
+            <span class="math-inline">Q = D − W</span> where D = diag(rowSums(W)) is the degree matrix. Q is the graph Laplacian — it is positive semi-definite with rank N − 1 (one zero eigenvalue corresponding to the constant vector, reflecting the sum-to-zero constraint of the ICAR).</div>
+          </li>
+          <li>
+            <div><strong style="color:var(--accent)">Scale Q to Q★ (the BYM2 scaling).</strong><br>
+            Eigen-decompose Q = VΛVᵀ. The generalised inverse is <span class="math-inline">Q⁻ = V₊Λ₊⁻¹V₊ᵀ</span> where + denotes retaining only eigenvectors with λ > tol. Compute the geometric mean of the marginal variances:
+            <div class="math-block">s = exp( mean( log( diag(Q⁻) ) ) )</div>
+            Then <span class="math-inline">Q★ = Q / (1/s) = s · Q</span>, so that <span class="math-inline">mean(diag(Q★⁻)) = 1</span>. The pseudo-inverse Q★⁻¹ is pre-computed for sampling.</div>
+          </li>
+          <li>
+            <div><strong style="color:var(--accent)">Sample the ICAR component u.</strong><br>
+            Draw <span class="math-inline">u ~ N(0, Q★⁻¹)</span> using the eigendecomposition: <span class="math-inline">u = V₊ Λ₊^{-½} z</span> where <span class="math-inline">z ~ N(0, I)</span>. This samples from the proper approximation of the intrinsic CAR.</div>
+          </li>
+          <li>
+            <div><strong style="color:var(--accent)">Sample the iid component ε.</strong><br>
+            Draw <span class="math-inline">ε ~ N(0, I_N)</span> — N independent standard normals.</div>
+          </li>
+          <li>
+            <div><strong style="color:var(--accent)">Mix into BYM2 random effects b.</strong>
+            <div class="math-block">bᵢ = σ · ( √(1−φ) · εᵢ  +  √φ · uᵢ )</div>
+            Both components have marginal variance 1 (by construction of Q★ and ε), so Var(bᵢ) = σ² for any φ.</div>
+          </li>
+          <li>
+            <div><strong style="color:var(--accent)">Generate Poisson counts.</strong><br>
+            For each area i, draw:
+            <div class="math-block">yᵢ ~ Poisson( E · exp(β₀ + bᵢ) )</div>
+            The SMR (Standardised Mortality/Morbidity Ratio) is <span class="math-inline">SMRᵢ = yᵢ / E</span>. Moran's I is computed on <span class="math-inline">log(SMRᵢ + 0.01)</span> to stabilise variance.</div>
+          </li>
+        </ol>
+
+        <div class="callout"><strong>Why does Poisson noise obscure the spatial signal?</strong> The BYM2 field bᵢ encodes a smooth spatial pattern, but yᵢ is a random draw. When E is small, Poisson variability (≈ √E / E = 1/√E relative SD) can be large relative to σ. The SMR is then dominated by sampling noise rather than the underlying spatial field. Increasing E or σ lets the spatial signal "win."</div>
+      </div>
+
+      <!-- ── MORAN'S I ── -->
+      <div class="docs-section" id="tab-morans">
+        <h3>Moran's I Statistic</h3>
+        <p>Moran's I measures global spatial autocorrelation — whether areas with similar values tend to cluster together. It is computed here on the row-standardised weight matrix.</p>
+
+        <div class="math-block">        N   ΣᵢΣⱼ wᵢⱼ (zᵢ − z̄)(zⱼ − z̄)
+I  =  ─── · ────────────────────────────────
+        S₀       Σᵢ (zᵢ − z̄)²
+
+where  zᵢ = log(SMRᵢ + 0.01),  S₀ = Σᵢ Σⱼ wᵢⱼ</div>
+
+        <h3>Null Expectation</h3>
+        <p>Under the null hypothesis of no spatial autocorrelation (random permutation), the expected value of I is:</p>
+        <div class="math-block">E[I]  =  −1 / (N − 1)</div>
+        <p>For large N this approaches 0, but for small grids it is noticeably negative (e.g., for N = 25: E[I] = −0.042).</p>
+
+        <h3>Inference</h3>
+        <p>The p-value is computed under a normal approximation using the analytical variance of I under the normality assumption (using S₀, S₁, S₂ — the sums of weights, squared weights, and squared row+column sums respectively). A two-sided test is used:</p>
+        <div class="math-block">Z  =  (I − E[I]) / √Var(I)
+
+p-value  =  2 · (1 − Φ(|Z|))</div>
+
+        <h3>Interpretation</h3>
+        <table class="param-table">
+          <thead><tr><th>I value</th><th>Interpretation</th></tr></thead>
+          <tbody>
+            <tr><td>I ≫ E[I], p &lt; 0.05</td><td>Positive spatial autocorrelation — similar values cluster together. High-value areas neighbour high-value areas.</td></tr>
+            <tr><td>I ≈ E[I]</td><td>No evidence of spatial autocorrelation. Values appear randomly distributed across the grid.</td></tr>
+            <tr><td>I ≪ E[I], p &lt; 0.05</td><td>Negative spatial autocorrelation (dispersion) — high-value areas tend to be surrounded by low-value areas, creating a checkerboard pattern.</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Moran Scatter Plot</h3>
+        <p>The scatter plot below the map shows standardised values <span class="math-inline">z</span> (x-axis) against the spatial lag <span class="math-inline">Wz</span> (y-axis, row-standardised). The slope of the regression line through the origin equals Moran's I. Points in the upper-right (HH) and lower-left (LL) quadrants drive positive autocorrelation; upper-left (LH) and lower-right (HL) drive negative.</p>
+      </div>
+
+      <!-- ── TIPS ── -->
+      <div class="docs-section" id="tab-tips">
+        <h3>Building Intuition</h3>
+
+        <div class="callout"><strong>φ → 1:</strong> The random effect is purely ICAR. You'll see smooth, large-scale spatial gradients on the map and Moran's I will be high. This is the regime where spatial clustering is "baked in."</div>
+        <div class="callout"><strong>φ → 0:</strong> Pure iid noise. The map looks like TV static. Moran's I should be near E[I] = −1/(N−1) and the p-value non-significant. Any clustering you see is pure chance.</div>
+        <div class="callout"><strong>Large E (e.g. 500):</strong> Poisson sampling variance is small relative to the spatial signal. The SMR map closely mirrors the latent bᵢ field. Moran's I will reliably reflect φ.</div>
+        <div class="callout"><strong>Small E (e.g. 10):</strong> Poisson noise dominates. Even with high φ, the SMR surface looks noisy and Moran's I may not be significant. This is why "Hunt for significance" sometimes needs multiple retries — the same underlying spatial field generates different observed count surfaces each time.</div>
+
+        <h3>Why Does the Hunt Cap at 10 Tries?</h3>
+        <p>When the Poisson signal-to-noise ratio is very low (small E, small σ, or low φ), each realisation of the count process may independently fail to achieve p &lt; 0.05 even though the true field has spatial structure. After 10 tries, the last realisation is shown so you can see what the model is producing under these difficult conditions — rather than looping indefinitely.</p>
+
+        <h3>Typical Parameter Regimes</h3>
+        <table class="param-table">
+          <thead><tr><th>Goal</th><th>Suggested Settings</th></tr></thead>
+          <tbody>
+            <tr><td>Strong visible clustering</td><td>φ = 0.9, σ = 1.5, E = 200, n = 15</td></tr>
+            <tr><td>Borderline / noisy</td><td>φ = 0.5, σ = 0.5, E = 50, n = 10</td></tr>
+            <tr><td>Near-null baseline</td><td>φ = 0.1, σ = 0.3, E = 100, n = 10</td></tr>
+            <tr><td>Demonstrate E effect</td><td>Fix φ = 0.8, σ = 1.0, vary E 10→500</td></tr>
+            <tr><td>Demonstrate φ effect</td><td>Fix σ = 1.0, E = 200, vary φ 0→1</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Reference</h3>
+        <p>Riebler, A., Sørbye, S. H., Simpson, D., &amp; Rue, H. (2016). An intuitive Bayesian spatial model for disease mapping that accounts for scaling. <em>Statistical Methods in Medical Research</em>, 25(4), 1145–1165.</p>
+      </div>
+
+    </div><!-- /docs-body -->
+  </div><!-- /docs-panel -->
+</div><!-- /docs-overlay -->
+
+<div class="layout">
+
+  <!-- ════ SIDEBAR ════ -->
+  <aside class="sidebar">
+
+    <div>
+      <div class="section-label">Grid Parameters</div>
+      <div class="control-group">
+        <div class="ctrl">
+          <div class="ctrl-header">
+            <label>Grid size (n × n)</label>
+            <span class="ctrl-val" id="val-n">10</span>
+          </div>
+          <input type="range" id="sl-n" min="5" max="25" value="10" step="1"/>
+        </div>
+        <div class="ctrl">
+          <div class="ctrl-header">
+            <label>β₀ (log baseline rate)</label>
+            <span class="ctrl-val" id="val-beta">0.00</span>
+          </div>
+          <input type="range" id="sl-beta" min="-2" max="2" value="0" step="0.05"/>
+        </div>
+        <div class="ctrl">
+          <div class="ctrl-header">
+            <label>Expected count E</label>
+            <span class="ctrl-val" id="val-E">100</span>
+          </div>
+          <input type="range" id="sl-E" min="10" max="500" value="100" step="10"/>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-label">BYM2 Parameters</div>
+      <div class="control-group">
+        <div class="ctrl">
+          <div class="ctrl-header">
+            <label>φ — spatial proportion</label>
+            <span class="ctrl-val" id="val-phi">0.70</span>
+          </div>
+          <input type="range" id="sl-phi" min="0" max="1" value="0.70" step="0.01"/>
+        </div>
+        <div class="ctrl">
+          <div class="ctrl-header">
+            <label>σ — marginal SD</label>
+            <span class="ctrl-val" id="val-sigma">0.80</span>
+          </div>
+          <input type="range" id="sl-sigma" min="0.05" max="3" value="0.80" step="0.05"/>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-label">Weight Matrix</div>
+      <select id="sel-wmat">
+        <option value="queen">Queen contiguity (8-neighbour)</option>
+        <option value="rook">Rook contiguity (4-neighbour)</option>
+      </select>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <div class="sig-toggle-row" id="sig-toggle-row">
+        <div class="sig-toggle-label">
+          <span>Hunt for significance</span>
+          <span>retry until p &lt; 0.05 (max 10)</span>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="chk-sig"/>
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <button class="btn btn-primary" id="btn-gen">⟳ Generate Data</button>
+    </div>
+
+    <div class="divider"></div>
+
+    <div>
+      <div class="section-label">AI Interpretation</div>
+      <div class="api-row">
+        <input type="password" id="api-key" placeholder="sk-ant-… (Anthropic key)"/>
+      </div>
+      <div style="margin-top:8px;">
+        <button class="btn btn-ai" id="btn-ai" disabled>✦ Explain with Claude</button>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ════ MAIN ════ -->
+  <main class="main">
+    <div class="map-area">
+      <canvas id="grid-canvas" width="480" height="480"></canvas>
+      <div class="map-label" id="map-label">Simulated SMR  ·  n=10×10 grid</div>
+      <div class="legend">
+        <span class="legend-label">Low</span>
+        <div class="legend-bar"></div>
+        <span class="legend-label">High</span>
+      </div>
+    </div>
+    <div class="scatter-area">
+      <div class="section-label" style="margin-bottom:8px;">Moran Scatter Plot  ·  standardised values vs spatial lag</div>
+      <canvas id="moran-canvas" width="760" height="130"></canvas>
+    </div>
+  </main>
+
+  <!-- ════ RIGHT PANEL ════ -->
+  <aside class="right-panel">
+    <div class="stats-section">
+      <div class="section-label">Spatial Statistics</div>
+      <div class="stat-card">
+        <span class="stat-name">Moran's I</span>
+        <span class="stat-val" id="stat-I" style="color:var(--accent)">—</span>
+        <span class="stat-sub" id="stat-pval">p-value: —</span>
+        <span class="interp-badge" id="stat-badge"></span>
+        <span class="tries-pill" id="stat-tries" style="display:none"></span>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-card">
+          <span class="stat-name">Mean SMR</span>
+          <span class="stat-val" id="stat-smr" style="font-size:18px;color:var(--accent2)">—</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-name">SD SMR</span>
+          <span class="stat-val" id="stat-sdsmr" style="font-size:18px;color:var(--warn)">—</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-name">Min Y</span>
+          <span class="stat-val" id="stat-miny" style="font-size:18px;">—</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-name">Max Y</span>
+          <span class="stat-val" id="stat-maxy" style="font-size:18px;">—</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-name">Weight matrix</span>
+        <span class="stat-val" id="stat-wmat" style="font-size:13px;font-family:var(--mono)">—</span>
+        <span class="stat-sub" id="stat-edges">— edges</span>
+      </div>
+    </div>
+
+    <div class="ai-section">
+      <div class="section-label">Claude's Interpretation</div>
+      <div class="ai-bubble" id="ai-output">
+        Run a simulation, then click "Explain with Claude" to get a contextual interpretation of the spatial pattern, Moran's I, and suggested parameter changes.
+      </div>
+    </div>
+  </aside>
+
+</div>
+
+<!-- ══════════════════ SCRIPTS ══════════════════ -->
+<script>
+// ── Numeric helpers ────────────────────────────────────────────────────────
+
+function zeros(n) { return new Float64Array(n); }
+
+function matMul(A, B, n) {
+  // A: n×n flat, B: n×n flat → C: n×n flat
+  const C = zeros(n * n);
+  for (let i = 0; i < n; i++)
+    for (let k = 0; k < n; k++) {
+      const aik = A[i * n + k];
+      if (aik === 0) continue;
+      for (let j = 0; j < n; j++) C[i * n + j] += aik * B[k * n + j];
+    }
+  return C;
+}
+
+function matVec(A, v, n) {
+  const out = zeros(n);
+  for (let i = 0; i < n; i++)
+    for (let j = 0; j < n; j++) out[i] += A[i * n + j] * v[j];
+  return out;
+}
+
+// Symmetric tridiagonal-ish eigen via Jacobi (works for small–medium dense symmetric matrices)
+function jacobiEigen(A_flat, n, maxIter = 500) {
+  const A = Array.from(A_flat).map((v, i) => ({ r: Math.floor(i / n), c: i % n, v }));
+  // Re-build as 2D array for readability
+  const M = [];
+  for (let i = 0; i < n; i++) { M.push([]); for (let j = 0; j < n; j++) M[i].push(A_flat[i * n + j]); }
+
+  // V = identity
+  const V = [];
+  for (let i = 0; i < n; i++) { V.push([]); for (let j = 0; j < n; j++) V[i].push(i === j ? 1 : 0); }
+
+  for (let iter = 0; iter < maxIter; iter++) {
+    // Find largest off-diagonal
+    let maxVal = 0, p = 0, q = 1;
+    for (let i = 0; i < n; i++)
+      for (let j = i + 1; j < n; j++)
+        if (Math.abs(M[i][j]) > maxVal) { maxVal = Math.abs(M[i][j]); p = i; q = j; }
+    if (maxVal < 1e-12) break;
+
+    const theta = 0.5 * Math.atan2(2 * M[p][q], M[q][q] - M[p][p]);
+    const c = Math.cos(theta), s = Math.sin(theta);
+
+    // Apply rotation to M
+    const Mp = M.map(r => [...r]);
+    for (let r = 0; r < n; r++) {
+      Mp[r][p] = c * M[r][p] - s * M[r][q];
+      Mp[r][q] = s * M[r][p] + c * M[r][q];
+    }
+    for (let r = 0; r < n; r++) {
+      Mp[p][r] = Mp[r][p];
+      Mp[q][r] = Mp[r][q];
+    }
+    Mp[p][p] = c * c * M[p][p] - 2 * s * c * M[p][q] + s * s * M[q][q];
+    Mp[q][q] = s * s * M[p][p] + 2 * s * c * M[p][q] + c * c * M[q][q];
+    Mp[p][q] = Mp[q][p] = 0;
+    for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) M[i][j] = Mp[i][j];
+
+    // Apply rotation to V
+    for (let r = 0; r < n; r++) {
+      const vp = V[r][p], vq = V[r][q];
+      V[r][p] = c * vp - s * vq;
+      V[r][q] = s * vp + c * vq;
+    }
+  }
+
+  const vals = M.map((r, i) => r[i]);
+  // Flatten V to column-major eigenvectors: V_flat[col][row]
+  const vecs = V; // vecs[row][col]
+  return { values: vals, vectors: vecs };
+}
+
+// ── Build W matrix (grid) ───────────────────────────────────────────────────
+
+function buildW(n, type) {
+  // n×n grid, total N = n*n cells, row-major cell index i*n+j
+  const N = n * n;
+  const W = zeros(N * N);
+  const dirs = type === 'queen'
+    ? [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]]
+    : [[-1,0],[0,-1],[0,1],[1,0]];
+
+  for (let r = 0; r < n; r++)
+    for (let c = 0; c < n; c++) {
+      const idx = r * n + c;
+      for (const [dr, dc] of dirs) {
+        const nr = r + dr, nc = c + dc;
+        if (nr >= 0 && nr < n && nc >= 0 && nc < n)
+          W[idx * N + (nr * n + nc)] = 1;
+      }
+    }
+  return { W, N };
+}
+
+// ── prec_func ──────────────────────────────────────────────────────────────
+
+function precFunc(W_flat, N, tol = 1e-8) {
+  // D = diag(rowSums(W))
+  const rowsums = zeros(N);
+  for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) rowsums[i] += W_flat[i * N + j];
+
+  // Q = D - W
+  const Q_flat = new Float64Array(N * N);
+  for (let i = 0; i < N; i++) {
+    Q_flat[i * N + i] = rowsums[i];
+    for (let j = 0; j < N; j++) Q_flat[i * N + j] -= W_flat[i * N + j];
+  }
+
+  // Eigen decomposition of Q (Jacobi)
+  const { values: gamma, vectors: V } = jacobiEigen(Q_flat, N);
+
+  // keep eigenvalues > tol
+  const keepIdx = gamma.map((v, i) => ({ v, i })).filter(x => x.v > tol).map(x => x.i);
+
+  // Compute diagonal of Q_inv restricted to kept eigenvectors
+  // Q_inv[i,i] = sum_k (V[i][k]^2 / gamma[k]) for k in keep
+  const d_inv = zeros(N);
+  for (let i = 0; i < N; i++)
+    for (const k of keepIdx) d_inv[i] += (V[i][k] ** 2) / gamma[k];
+
+  // s = geometric mean of d_inv
+  const s = Math.exp(d_inv.reduce((acc, v) => acc + Math.log(v), 0) / N);
+  const c = 1 / s;
+
+  // Q_star = Q / c → eigenvalues = gamma / c
+  const gamma_s = gamma.map(g => g / c);
+
+  // Q_star_inv: dense pseudo-inverse using kept eigenvectors of Q_star
+  // Q_star shares eigenvectors with Q; eigenvalues are gamma/c
+  // Q_star_inv[i,j] = sum_k V[i][k] * (1/gamma_s[k]) * V[j][k]
+  const Qs_inv_flat = zeros(N * N);
+  const keepS = gamma_s.map((v, i) => ({ v, i })).filter(x => x.v > tol).map(x => x.i);
+  for (const k of keepS) {
+    const inv_gk = 1 / gamma_s[k];
+    for (let i = 0; i < N; i++)
+      for (let j = 0; j < N; j++)
+        Qs_inv_flat[i * N + j] += V[i][k] * inv_gk * V[j][k];
+  }
+
+  return { Qs_inv: Qs_inv_flat, c, s, Q: Q_flat, N };
+}
+
+// ── Cholesky-based MVN sample ──────────────────────────────────────────────
+// Sample x ~ N(0, Sigma) where Sigma = Qs_inv (dense N×N)
+// Uses eigen decomposition: x = V D^{1/2} z, z~N(0,I)
+
+function sampleMVN_eigen(Qs_inv_flat, N, V_stored, gamma_s_stored, tol = 1e-8) {
+  // Re-use stored eigen if available, else recompute
+  const { values: gamma, vectors: V } = jacobiEigen(Qs_inv_flat, N);
+  const keepIdx = gamma.map((v, i) => ({ v, i })).filter(x => x.v > tol).map(x => x.i);
+  const z = Array.from({ length: keepIdx.length }, () => randn());
+  const u = zeros(N);
+  for (let li = 0; li < keepIdx.length; li++) {
+    const k = keepIdx[li];
+    const scale = Math.sqrt(Math.max(gamma[k], 0)) * z[li];
+    for (let i = 0; i < N; i++) u[i] += V[i][k] * scale;
+  }
+  return u;
+}
+
+// ── Box-Muller normal sampler ──────────────────────────────────────────────
+let _spare = null, _haveSpare = false;
+function randn() {
+  if (_haveSpare) { _haveSpare = false; return _spare; }
+  let u, v, s;
+  do { u = Math.random() * 2 - 1; v = Math.random() * 2 - 1; s = u*u + v*v; } while (s >= 1 || s === 0);
+  const m = Math.sqrt(-2 * Math.log(s) / s);
+  _spare = v * m; _haveSpare = true;
+  return u * m;
+}
+
+function randPoisson(lambda) {
+  if (lambda <= 0) return 0;
+  // Knuth algorithm (simple, fine for lambda < ~700)
+  if (lambda > 30) {
+    // Normal approximation for large lambda
+    return Math.max(0, Math.round(lambda + Math.sqrt(lambda) * randn()));
+  }
+  const L = Math.exp(-lambda);
+  let k = 0, p = 1;
+  do { k++; p *= Math.random(); } while (p > L);
+  return k - 1;
+}
+
+// ── gen_bym2 ───────────────────────────────────────────────────────────────
+
+function genBYM2(N, sigma, phi, Qs_inv_flat) {
+  const eps = Array.from({ length: N }, () => randn());
+  const u = sampleMVN_eigen(Qs_inv_flat, N);
+  return eps.map((e, i) => sigma * (Math.sqrt(1 - phi) * e + Math.sqrt(phi) * u[i]));
+}
+
+// ── Moran's I ─────────────────────────────────────────────────────────────
+
+function moransI(vals, W_flat, N) {
+  const mean = vals.reduce((a, b) => a + b, 0) / N;
+  const z = vals.map(v => v - mean);
+  let S0 = 0, num = 0;
+  for (let i = 0; i < N; i++)
+    for (let j = 0; j < N; j++) {
+      const w = W_flat[i * N + j];
+      S0 += w;
+      num += w * z[i] * z[j];
+    }
+  const denom = z.reduce((a, v) => a + v * v, 0);
+  const I = (N / S0) * (num / denom);
+
+  // Expectation and variance under normality assumption
+  const EI = -1 / (N - 1);
+  // Variance (simplified): use permutation approximation
+  const S1 = (() => {
+    let s = 0;
+    for (let i = 0; i < N; i++)
+      for (let j = 0; j < N; j++) { const v = W_flat[i*N+j] + W_flat[j*N+i]; s += v*v; }
+    return s / 2;
+  })();
+  const S2 = (() => {
+    let s = 0;
+    for (let i = 0; i < N; i++) {
+      let ri = 0, ci = 0;
+      for (let j = 0; j < N; j++) { ri += W_flat[i*N+j]; ci += W_flat[j*N+i]; }
+      s += (ri + ci) ** 2;
+    }
+    return s;
+  })();
+  const n = N;
+  const A = n * ((n*n - 3*n + 3)*S1 - n*S2 + 3*S0*S0);
+  const m2 = denom / n;
+  const m4 = z.reduce((a, v) => a + v**4, 0) / n;
+  const k = m4 / (m2 * m2);
+  const B = k * ((n*n - n)*S1 - 2*n*S2 + 6*S0*S0);
+  const C = (n - 1) * (n + 1) * (n*n - 3*n + 3 - (n-1)*k) * S0 * S0;
+  // Var(I) under normality
+  const VarI = (n*n*(n-1)*S1 - n*(n-1)*S2 + 2*(n-2)*S0*S0) /
+               ((n+1)*(n-1)*(n-1)*S0*S0) - EI*EI;
+  const z_score = (I - EI) / Math.sqrt(Math.max(VarI, 1e-10));
+  const pval = 2 * (1 - stdNormalCDF(Math.abs(z_score)));
+
+  return { I, EI, pval, z_score, z_vals: z };
+}
+
+function stdNormalCDF(x) {
+  // Abramowitz & Stegun approximation
+  const t = 1 / (1 + 0.2316419 * Math.abs(x));
+  const d = 0.3989423 * Math.exp(-x * x / 2);
+  const p = d * t * (0.3193815 + t * (-0.3565638 + t * (1.7814779 + t * (-1.8212560 + t * 1.3302744))));
+  return x > 0 ? 1 - p : p;
+}
+
+// ── Colour scale ───────────────────────────────────────────────────────────
+
+function valToColor(v, min, max) {
+  // blue → cyan → green → yellow → red
+  const t = Math.max(0, Math.min(1, (v - min) / (max - min || 1)));
+  const stops = [
+    [26,  58, 110],   // deep blue
+    [37, 100, 235],   // blue
+    [56, 201, 160],   // teal
+    [252, 211, 77],   // amber
+    [220,  38,  38],  // red
+  ];
+  const seg = t * (stops.length - 1);
+  const i = Math.min(Math.floor(seg), stops.length - 2);
+  const f = seg - i;
+  const r = stops[i][0] + f * (stops[i+1][0] - stops[i][0]);
+  const g = stops[i][1] + f * (stops[i+1][1] - stops[i][1]);
+  const b = stops[i][2] + f * (stops[i+1][2] - stops[i][2]);
+  return `rgb(${Math.round(r)},${Math.round(g)},${Math.round(b)})`;
+}
+
+// ── Draw choropleth ────────────────────────────────────────────────────────
+
+function drawGrid(vals, n, smrVals) {
+  const canvas = document.getElementById('grid-canvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const cw = W / n, ch = H / n;
+  const min = Math.min(...smrVals), max = Math.max(...smrVals);
+
+  for (let r = 0; r < n; r++) {
+    for (let c = 0; c < n; c++) {
+      const idx = r * n + c;
+      ctx.fillStyle = valToColor(smrVals[idx], min, max);
+      ctx.fillRect(c * cw + 0.5, r * ch + 0.5, cw - 1, ch - 1);
+      // cell index label for small grids
+      if (n <= 12) {
+        ctx.fillStyle = 'rgba(255,255,255,0.55)';
+        ctx.font = `${Math.max(9, Math.round(cw * 0.22))}px 'IBM Plex Mono'`;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(smrVals[idx].toFixed(2), c * cw + cw/2, r * ch + ch/2);
+      }
+    }
+  }
+}
+
+// ── Draw Moran scatter ─────────────────────────────────────────────────────
+
+function drawMoranScatter(zVals, W_flat, N, moranI) {
+  const canvas = document.getElementById('moran-canvas');
+  // Resize canvas to actual display width
+  canvas.width = canvas.parentElement.offsetWidth || 760;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  // Compute spatial lag: Wz / rowsum
+  const lag = zeros(N);
+  const rowsums = zeros(N);
+  for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) rowsums[i] += W_flat[i*N+j];
+  for (let i = 0; i < N; i++)
+    for (let j = 0; j < N; j++)
+      lag[i] += W_flat[i*N+j] * zVals[j];
+  for (let i = 0; i < N; i++) if (rowsums[i] > 0) lag[i] /= rowsums[i];
+
+  const pad = { l: 40, r: 20, t: 10, b: 24 };
+  const pw = W - pad.l - pad.r, ph = H - pad.t - pad.b;
+
+  const xmin = Math.min(...Array.from(zVals)), xmax = Math.max(...Array.from(zVals));
+  const ymin = Math.min(...Array.from(lag)), ymax = Math.max(...Array.from(lag));
+
+  const tx = v => pad.l + (v - xmin) / (xmax - xmin || 1) * pw;
+  const ty = v => pad.t + ph - (v - ymin) / (ymax - ymin || 1) * ph;
+
+  // Grid lines
+  ctx.strokeStyle = '#2a3347'; ctx.lineWidth = 0.5;
+  for (let i = 0; i <= 4; i++) {
+    const x = pad.l + pw * i / 4, y = pad.t + ph * i / 4;
+    ctx.beginPath(); ctx.moveTo(x, pad.t); ctx.lineTo(x, pad.t + ph); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l + pw, y); ctx.stroke();
+  }
+
+  // Zero axes
+  ctx.strokeStyle = '#3a4a60'; ctx.lineWidth = 1;
+  const x0 = tx(0), y0 = ty(0);
+  ctx.beginPath(); ctx.moveTo(x0, pad.t); ctx.lineTo(x0, pad.t + ph); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(pad.l, y0); ctx.lineTo(pad.l + pw, y0); ctx.stroke();
+
+  // Regression line (Moran's I is slope of lag ~ z)
+  ctx.strokeStyle = '#4f8ef7'; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(tx(xmin), ty(moranI * xmin));
+  ctx.lineTo(tx(xmax), ty(moranI * xmax));
+  ctx.stroke();
+
+  // Points
+  const smrMin = Math.min(...Array.from(zVals)), smrMax = Math.max(...Array.from(zVals));
+  for (let i = 0; i < N; i++) {
+    ctx.beginPath();
+    ctx.arc(tx(zVals[i]), ty(lag[i]), Math.max(2, 160 / N), 0, 2 * Math.PI);
+    ctx.fillStyle = valToColor(zVals[i], smrMin, smrMax);
+    ctx.globalAlpha = 0.75;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+
+  // Axis labels
+  ctx.fillStyle = '#7a8aaa'; ctx.font = "10px 'IBM Plex Mono'";
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  ctx.fillText('z (std. value)', pad.l + pw / 2, H - 14);
+  ctx.save(); ctx.translate(12, pad.t + ph / 2); ctx.rotate(-Math.PI/2);
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('Spatial lag', 0, 0);
+  ctx.restore();
+}
+
+// ── State ──────────────────────────────────────────────────────────────────
+
+let state = {
+  n: 10, phi: 0.70, sigma: 0.80, beta0: 0, E: 100, wmat: 'queen',
+  W_flat: null, N: null, prec: null, simVals: null, smrVals: null, moranResult: null
+};
+
+// ── Slider bindings ────────────────────────────────────────────────────────
+
+function bindSlider(id, stateKey, dispId, fmt) {
+  const el = document.getElementById(id);
+  const disp = document.getElementById(dispId);
+  el.addEventListener('input', () => {
+    state[stateKey] = parseFloat(el.value);
+    disp.textContent = fmt(state[stateKey]);
+  });
+}
+
+bindSlider('sl-n',     'n',     'val-n',     v => v);
+bindSlider('sl-phi',   'phi',   'val-phi',   v => v.toFixed(2));
+bindSlider('sl-sigma', 'sigma', 'val-sigma', v => v.toFixed(2));
+bindSlider('sl-beta',  'beta0', 'val-beta',  v => v.toFixed(2));
+bindSlider('sl-E',     'E',     'val-E',     v => v);
+
+document.getElementById('sel-wmat').addEventListener('change', e => {
+  state.wmat = e.target.value;
+});
+
+document.getElementById('api-key').addEventListener('input', e => {
+  document.getElementById('btn-ai').disabled = e.target.value.trim().length < 10 || !state.simVals;
+});
+
+// ── Generate ───────────────────────────────────────────────────────────────
+
+document.getElementById('btn-gen').addEventListener('click', () => {
+  const btn = document.getElementById('btn-gen');
+  const huntMode = document.getElementById('chk-sig').checked;
+
+  btn.disabled = true;
+  if (huntMode) {
+    btn.textContent = '⌛ Hunting…';
+    document.getElementById('sig-toggle-row').classList.add('sig-hunt-active');
+  } else {
+    btn.textContent = '⌛ Computing…';
+  }
+
+  // Yield to the browser to repaint before the (potentially looping) computation
+  setTimeout(() => {
+    try { runSimulation(huntMode); }
+    catch (e) { console.error(e); }
+    btn.textContent = '⟳ Generate Data';
+    btn.disabled = false;
+    document.getElementById('sig-toggle-row').classList.remove('sig-hunt-active');
+  }, 20);
+});
+
+// ── Core one-shot simulation (returns result object, no side-effects) ───────
+
+function simulateOnce(W, N, prec, edgeCount) {
+  const { n, phi, sigma, beta0, E, wmat } = state;
+
+  const b = genBYM2(N, sigma, phi, prec.Qs_inv);
+  const E_vec = Array(N).fill(E);
+  const y = b.map((bi, i) => randPoisson(E_vec[i] * Math.exp(beta0 + bi)));
+  const smr = y.map((yi, i) => yi / E_vec[i]);
+  const logSMR = smr.map(v => Math.log(v + 0.01));
+  const mr = moransI(logSMR, W, N);
+
+  return { b, y, smr, mr };
+}
+
+// ── Main orchestrator ────────────────────────────────────────────────────────
+
+function runSimulation(huntMode = false) {
+  const { n, phi, sigma, beta0, E, wmat } = state;
+  const N = n * n;
+  const MAX_TRIES = 10;
+
+  // Build W and precision matrices once — these don't change between retries
+  const { W, N: Nw } = buildW(n, wmat);
+  state.W_flat = W; state.N = N;
+
+  let edgeCount = 0;
+  for (let i = 0; i < N * N; i++) if (W[i] > 0) edgeCount++;
+  edgeCount /= 2;
+
+  const prec = precFunc(W, N);
+  state.prec = prec;
+
+  // ── Retry loop ─────────────────────────────────────────────────────────────
+  let tries = 1;
+  let result = simulateOnce(W, N, prec, edgeCount);
+
+  if (huntMode) {
+    while (result.mr.pval >= 0.05 && tries < MAX_TRIES) {
+      tries++;
+      result = simulateOnce(W, N, prec, edgeCount);
+    }
+  }
+
+  const { b, y, smr, mr } = result;
+  const hitCap = huntMode && tries === MAX_TRIES && mr.pval >= 0.05;
+
+  // Persist to state
+  state.simVals = b;
+  state.smrVals = smr;
+  state.moranResult = mr;
+
+  // ── Draw ───────────────────────────────────────────────────────────────────
+  drawGrid(b, n, smr);
+  drawMoranScatter(new Float64Array(mr.z_vals), W, N, mr.I);
+
+  // ── Update stats ───────────────────────────────────────────────────────────
+  document.getElementById('map-label').textContent =
+    `Simulated SMR  ·  n=${n}×${n} grid  ·  φ=${phi.toFixed(2)}, σ=${sigma.toFixed(2)}, β₀=${beta0.toFixed(2)}`;
+
+  document.getElementById('stat-I').textContent = mr.I.toFixed(4);
+  document.getElementById('stat-pval').textContent =
+    `p-value: ${mr.pval < 0.001 ? '<0.001' : mr.pval.toFixed(4)}`;
+
+  const badge = document.getElementById('stat-badge');
+  if (mr.I > 0.1 && mr.pval < 0.05) {
+    badge.textContent = 'Positive clustering'; badge.className = 'interp-badge badge-cluster';
+  } else if (mr.I < -0.05 && mr.pval < 0.05) {
+    badge.textContent = 'Dispersed pattern'; badge.className = 'interp-badge badge-dispersed';
+  } else {
+    badge.textContent = 'No significant autocorr.'; badge.className = 'interp-badge badge-random';
+  }
+
+  // Tries pill
+  const triesPill = document.getElementById('stat-tries');
+  if (!huntMode) {
+    triesPill.style.display = 'none';
+  } else if (hitCap) {
+    triesPill.style.display = 'inline-flex';
+    triesPill.className = 'tries-pill tries-capped';
+    triesPill.textContent = `⚠ cap reached after ${tries} tries`;
+  } else {
+    triesPill.style.display = 'inline-flex';
+    triesPill.className = 'tries-pill tries-found';
+    triesPill.textContent = tries === 1
+      ? '✓ significant on first try'
+      : `✓ significant after ${tries} tries`;
+  }
+
+  const smrArr = Array.from(smr);
+  const smrMean = smrArr.reduce((a, b) => a + b, 0) / N;
+  const smrSD = Math.sqrt(smrArr.reduce((a, v) => a + (v - smrMean) ** 2, 0) / N);
+  document.getElementById('stat-smr').textContent = smrMean.toFixed(3);
+  document.getElementById('stat-sdsmr').textContent = smrSD.toFixed(3);
+  document.getElementById('stat-miny').textContent = Math.round(Math.min(...y));
+  document.getElementById('stat-maxy').textContent = Math.round(Math.max(...y));
+  document.getElementById('stat-wmat').textContent = wmat === 'queen' ? 'Queen (8-nbr)' : 'Rook (4-nbr)';
+  document.getElementById('stat-edges').textContent = `${edgeCount} edges`;
+
+  // Enable AI button if key present
+  const key = document.getElementById('api-key').value.trim();
+  document.getElementById('btn-ai').disabled = key.length < 10;
+}
+
+// ── AI Interpretation ──────────────────────────────────────────────────────
+
+document.getElementById('btn-ai').addEventListener('click', async () => {
+  const key = document.getElementById('api-key').value.trim();
+  const mr = state.moranResult;
+  if (!mr || !key) return;
+
+  const { n, phi, sigma, beta0, E, wmat } = state;
+  const smrArr = Array.from(state.smrVals);
+  const smrMean = (smrArr.reduce((a,b)=>a+b,0)/smrArr.length).toFixed(3);
+  const smrSD = Math.sqrt(smrArr.reduce((a,v,_,a2)=>a+(v-a2.reduce((x,y)=>x+y,0)/a2.length)**2,0)/smrArr.length).toFixed(3);
+
+  const prompt = `You are a spatial epidemiology expert. A user is exploring a BYM2 (Besag-York-Mollié 2) model on a ${n}×${n} grid with the following parameters:
+
+- φ (spatial mixing proportion): ${phi.toFixed(2)} — controls how much variance is spatial (ICAR) vs. unstructured (iid noise). φ=1 means purely spatial, φ=0 means purely iid.
+- σ (marginal SD of random effects): ${sigma.toFixed(2)}
+- β₀ (log baseline rate): ${beta0.toFixed(2)}
+- Expected count E: ${E} per area
+- Weight matrix: ${wmat === 'queen' ? 'Queen contiguity (8 neighbours)' : 'Rook contiguity (4 neighbours)'}
+
+Observed simulation results:
+- Moran's I: ${mr.I.toFixed(4)} (E[I] = ${mr.EI.toFixed(4)}, p-value = ${mr.pval < 0.001 ? '<0.001' : mr.pval.toFixed(4)})
+- Mean SMR: ${smrMean}, SD of SMR: ${smrSD}
+
+Please:
+1. Interpret whether the Moran's I result is consistent with the chosen φ value, and why.
+2. Explain in plain language what the spatial pattern likely looks like on the map.
+3. Suggest ONE specific parameter change (φ, σ, weight matrix, or grid size) the user should try next and what effect they should expect to see on Moran's I.
+
+Keep your response concise (under 180 words), practical, and written for someone learning spatial statistics.`;
+
+  const aiOut = document.getElementById('ai-output');
+  aiOut.className = 'ai-bubble loading';
+  aiOut.innerHTML = '<div class="spinner"></div> Claude is analysing the spatial pattern…';
+
+  document.getElementById('btn-ai').disabled = true;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 400,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.error?.message || `HTTP ${resp.status}`);
+    }
+
+    const data = await resp.json();
+    const text = data.content?.map(b => b.text || '').join('') || '(No response)';
+    aiOut.className = 'ai-bubble';
+    aiOut.textContent = text;
+  } catch (e) {
+    aiOut.className = 'ai-bubble';
+    aiOut.innerHTML = `<span class="error-msg">Error: ${e.message}</span>`;
+  } finally {
+    document.getElementById('btn-ai').disabled = false;
+  }
+});
+
+// ── Docs panel ────────────────────────────────────────────────────────────
+
+(function () {
+  const overlay  = document.getElementById('docs-overlay');
+  const tabBtn   = document.getElementById('docs-tab-btn');
+  const closeBtn = document.getElementById('docs-close');
+  const backdrop = document.getElementById('docs-backdrop');
+
+  function openDocs() {
+    overlay.classList.add('open');
+    tabBtn.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeDocs() {
+    overlay.classList.remove('open');
+    tabBtn.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  tabBtn.addEventListener('click', () => {
+    overlay.classList.contains('open') ? closeDocs() : openDocs();
+  });
+  closeBtn.addEventListener('click', closeDocs);
+  backdrop.addEventListener('click', closeDocs);
+
+  // ESC key closes
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && overlay.classList.contains('open')) closeDocs();
+  });
+
+  // Inner tab navigation
+  document.querySelectorAll('.docs-nav-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.docs-nav-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.docs-section').forEach(s => s.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    });
+  });
+})();
+
+// ── Initial render ─────────────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  runSimulation();
+});
+</script>
+</body>
+</html>

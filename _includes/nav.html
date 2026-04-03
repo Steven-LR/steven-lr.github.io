@@ -8,6 +8,8 @@
         {% assign current = false %}
         {% if page.url == item.url or page.url == item.url | append: 'index.html' %}
           {% assign current = true %}
+        {% elsif item.url == '/apps/' and page.url contains '/apps/' %}
+          {% assign current = true %}
         {% endif %}
         <li class="site-nav__item">
           <a
