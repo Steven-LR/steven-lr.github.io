@@ -101,7 +101,8 @@ show_title: false
     <h2>Projects</h2>
     <div class="project-list">
       <div class="project-item">
-        <div class="project-item__title"><a href="https://github.com/Steven-LR/StanBYM2">Conditional autoregressive model with Besag–York–Mollié (BYM2) specification in Stan and high-performance computing implementation</a></div>
+        <div class="project-item__title"> Conditional autoregressive model with Besag–York–Mollié (BYM2) specification in Stan and high-performance computing implementation
+        </div>
         <p>Simulation study comparing prior choices for the spatial mixing parameter in Bayesian BYM2 models, implemented in Stan (CmdStan) with reproducible SLURM workflows for cluster execution.</p>
         <p><a href="https://github.com/Steven-LR/StanBYM2">Repository</a></p>
       </div>
