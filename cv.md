@@ -43,7 +43,7 @@ permalink: /cv/
 ## Research and Work Experience
 
 <div class="card">
-  <p>Primary training and employment are at <strong>New York University</strong> (doctoral research) and <strong>Icahn School of Medicine at Mount Sinai</strong> (collaborative biostatistics and data science across multiple teams). External roles and consulting are listed separately below.</p>
+  <p>Primary training and employment are at <strong>New York University</strong> (doctoral research). External consulting and shorterm opportunities are listed separately below.</p>
 </div>
 
 ### New York University
