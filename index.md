@@ -171,6 +171,8 @@ show_title: false
     <h2>Additional Interests</h2>
     <div class="card">
       <p>When I am not doing statistics, I volunteer alot by speaking at highschools in collaboration with the <a href = "https://www.mskcc.org/education-training/bridge-to-biostats-summer-program-b2bsp">Bridge to Biostatistics Program</a> aimed at raising awareness of the impact of our feild in hopes to attract the next generation of biostatisticians. Additionally, I am also a jazz musician and recording artist. I have music released on YouTube Music and enjoy creating music when I am not doing science. <a href="https://music.youtube.com/channel/UCrfi8FmBT6ftmzRSl62Zm4Q">Here is my YouTube Music channel</a>.</p>
+
+      <p> <i>Learn all you can for as long as you can, so that when purpose presents itself you can fulfill it</i></p>
     </div>
   </section>
 </div>
