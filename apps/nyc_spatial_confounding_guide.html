@@ -529,13 +529,16 @@ function parseRows(rows){
   }).filter(Boolean);
 }
 
-// ── Census TIGER tract boundaries ─────────────────────────────────────────────
+// ── Census TIGER tract boundaries (2019 vintage) ──────────────────────────────
 
+// Use tigerWMS_ACS2019 so the tract boundaries match the 2019 ACS GEOID codes.
+// Tracts_Blocks/MapServer/0 uses 2020 Census boundaries, which don't match.
 async function loadCountyGeoJSON(county){
   const co  = parseInt(county);
-  const url = 'https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Tracts_Blocks/MapServer/0/query'
+  // Layer 8 = Census Tracts in the ACS 2019 TIGERweb service
+  const url = 'https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_ACS2019/MapServer/8/query'
     + `?where=STATE%3D36+AND+COUNTY%3D${co}`
-    + '&outFields=GEOID%2CTRACT%2CCOUNTY%2CSTATE'
+    + '&outFields=GEOID%2CTRACTCE%2CCOUNTYFP%2CSTATEFP'
     + '&returnGeometry=true&f=geojson&resultRecordCount=3000';
   const r = await fetch(url);
   if(!r.ok) throw new Error(`TIGER HTTP ${r.status} county=${county}`);
@@ -550,8 +553,26 @@ async function loadAllGeoJSON(){
 
 // ── Geometry helpers ──────────────────────────────────────────────────────────
 
+// Normalise the GEOID from a feature's properties to a reliable 11-char string.
+// The TIGERweb REST API can return GEOID as a string OR numeric field, and
+// field names differ between service versions (TRACTCE vs TRACT, COUNTYFP vs COUNTY).
+function normalizeGeoid(props){
+  const g = props.GEOID;
+  if(g != null){
+    const s = String(g);
+    if(s.length === 11) return s;            // already correct
+    if(s.length > 0)    return s.padStart(11,'0'); // numeric → string
+  }
+  // Fallback: construct from individual parts (handles all field-name variants)
+  const state  = String(props.STATEFP  || props.STATE  || 36).padStart(2,'0');
+  const county = String(props.COUNTYFP || props.COUNTY ||  0).padStart(3,'0');
+  const tract  = String(props.TRACTCE  || props.TRACT  ||  0).padStart(6,'0');
+  return state + county + tract;
+}
+
 function buildGeoidMap(data){
   const m = {};
+  // Store under the 11-digit GEOID so it matches normalizeGeoid() output
   data.forEach(d => { m['36' + d.county + d.tract] = d; });
   return m;
 }
@@ -569,7 +590,8 @@ function computeCentroid(geometry){
 
 function augmentWithCentroids(geoidMap, geojson){
   (geojson.features || []).forEach(f => {
-    const d = geoidMap[f.properties.GEOID];
+    const geoid = normalizeGeoid(f.properties);
+    const d = geoidMap[geoid];
     if(d){ const [lat,lon] = computeCentroid(f.geometry); d.lat = lat; d.lon = lon; }
   });
 }
@@ -697,18 +719,23 @@ function drawChoropleth(mapId, colorFn, tooltipFn){
   if(choroplethLayers[mapId]){ m.removeLayer(choroplethLayers[mapId]); }
   const layer = L.geoJSON(tractGeoJSON, {
     style: f => {
-      const d = geoidDataMap[f.properties.GEOID];
+      const geoid = normalizeGeoid(f.properties);
+      const d = geoidDataMap[geoid];
       return {
-        fillColor:   d ? colorFn(d) : '#1a1e2e',
-        fillOpacity: d ? 0.82 : 0,
-        color:    '#0e1117',
-        weight:    0.4,
-        opacity:   0.7
+        fillColor:   d ? colorFn(d) : '#1c2030',
+        fillOpacity: d ? 0.85        : 0.25,   // unmatched: faint but visible
+        color:   '#2a3347',
+        weight:  0.5,
+        opacity: 0.8
       };
     },
     onEachFeature: (f, lyr) => {
-      const d = geoidDataMap[f.properties.GEOID];
-      if(d && tooltipFn) lyr.bindTooltip(tooltipFn(d), {sticky: true, className: 'sc-tooltip'});
+      const geoid = normalizeGeoid(f.properties);
+      const d = geoidDataMap[geoid];
+      if(tooltipFn) lyr.bindTooltip(
+        d ? tooltipFn(d) : `GEOID ${geoid} — no ACS match`,
+        {sticky: true, className: 'sc-tooltip'}
+      );
     }
   }).addTo(m);
   choroplethLayers[mapId] = layer;
