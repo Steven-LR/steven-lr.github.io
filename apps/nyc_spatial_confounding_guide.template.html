@@ -19,6 +19,7 @@
   body{font-family:var(--sans);background:var(--bg);color:var(--text);padding:18px}
   .app{max-width:1300px;margin:0 auto}
   header{display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border);padding:0 0 12px}
+  .header-right{margin-left:auto;display:flex;align-items:center;gap:8px}
   .logo{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:12px;font-family:var(--mono);font-weight:600;color:#fff}
   h1{font-size:20px;font-weight:500}
   header span{font-family:var(--mono);font-size:11px;color:var(--muted)}
@@ -33,13 +34,19 @@
   .controls{display:flex;align-items:center;gap:10px;margin-top:14px}
   select{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:7px 9px;border-radius:7px;font-family:var(--mono);font-size:12px}
   .small{font-family:var(--mono);font-size:11px;color:var(--muted)}
-  .act-nav{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
-  .act-nav a{font-family:var(--mono);font-size:11px;color:var(--text);text-decoration:none;border:1px solid var(--border);background:var(--surface);padding:6px 9px;border-radius:7px}
-  .act-nav a:hover{border-color:#3f4d68}
+  .btn{font-family:var(--mono);font-size:11px;color:var(--text);text-decoration:none;border:1px solid var(--border);background:var(--surface);padding:6px 9px;border-radius:7px;cursor:pointer}
+  .btn:hover{border-color:#3f4d68}
+  .act-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .act-tab{font-family:var(--mono);font-size:11px;color:var(--text);border:1px solid var(--border);background:var(--surface);padding:7px 10px;border-radius:7px;cursor:pointer}
+  .act-tab.active{border-color:#4f8ef7;background:#1b2536}
   .act{margin-top:18px;padding-top:8px}
+  .act.hidden{display:none}
   .act-title{font-family:var(--mono);font-size:12px;color:var(--accent2);margin-bottom:8px}
   .narrative{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 12px;line-height:1.6;color:#d2dcee}
   .narrative strong{color:var(--text)}
+  .method-doc{margin-top:12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;line-height:1.65;color:#d2dcee}
+  .method-doc h3{font-family:var(--mono);font-size:12px;color:var(--accent2);margin-bottom:8px}
+  .method-doc p{margin-bottom:8px}
   canvas{width:100%;height:260px;background:#0b0f16;border-radius:8px}
   .error{margin-top:14px;padding:11px;background:#2a1620;border:1px solid #4f2638;border-radius:8px;color:#ffb4c8;font-family:var(--mono);font-size:12px;line-height:1.5}
   .leaflet-container{background:#0b0f16}
@@ -54,6 +61,9 @@
     <div class="logo">SC</div>
     <h1>Spatial Confounding · NYC Health Data</h1>
     <span>single-file precomputed build</span>
+    <div class="header-right">
+      <button id="method-btn" class="btn" type="button" aria-expanded="false" aria-controls="method-doc">Method doc</button>
+    </div>
   </header>
 
   <div class="controls">
@@ -65,10 +75,18 @@
     <span class="small" id="meta"></span>
   </div>
 
-  <div class="act-nav">
-    <a href="#act1">Act 1 · What the map shows</a>
-    <a href="#act2">Act 2 · The naive model</a>
-    <a href="#act3">Act 3 · Spatial adjustment</a>
+  <div class="act-tabs" role="tablist" aria-label="Three act views">
+    <button class="act-tab active" data-act="act1" role="tab" aria-selected="true">Act 1 · What the map shows</button>
+    <button class="act-tab" data-act="act2" role="tab" aria-selected="false">Act 2 · The naive model</button>
+    <button class="act-tab" data-act="act3" role="tab" aria-selected="false">Act 3 · Spatial adjustment</button>
+  </div>
+
+  <div id="method-doc" class="method-doc" style="display:none">
+    <h3>Methods documentation</h3>
+    <p><strong>Data source:</strong> ACS 5-year tract-level estimates for NYC are retrieved in R via <code>tidycensus</code> using the Census API key, then joined to tract geometries from <code>tigris</code> by <code>GEOID</code>.</p>
+    <p><strong>Variables:</strong> uninsured <code>S2701_C04_001</code>, poverty <code>S1701_C03_001</code>, unemployment <code>S2301_C04_001</code>. Invalid and suppressed values are filtered out during preprocessing.</p>
+    <p><strong>Modeling:</strong> Act 2 uses naive OLS (<code>uninsured ~ predictor</code>) and maps residuals. Act 3 uses a BYM2-inspired spatial adjustment proxy that smooths residual structure over tract-neighbor relationships to separate predictor effect from place-based signal.</p>
+    <p><strong>Rendering:</strong> this page is fully precomputed and self-contained. Runtime does not call Census or TIGER APIs; all geometry and model outputs are embedded in this HTML at build time.</p>
   </div>
 
   <div class="metrics">
@@ -97,7 +115,7 @@
     </div>
   </section>
 
-  <section id="act2" class="act">
+  <section id="act2" class="act hidden">
     <div class="act-title">ACT 2</div>
     <div class="narrative">
       A naive OLS model may look strong, but tract observations are not independent in space.
@@ -115,7 +133,7 @@
     </div>
   </section>
 
-  <section id="act3" class="act">
+  <section id="act3" class="act hidden">
     <div class="act-title">ACT 3</div>
     <div class="narrative">
       The spatially adjusted model separates predictor effect from place-based structure.
@@ -153,6 +171,14 @@
   const features = payload.geojson.features;
   const summaries = payload.summaries || {};
   const predictorSel = document.getElementById('predictor');
+  const tabButtons = Array.from(document.querySelectorAll('.act-tab'));
+  const actSections = {
+    act1: document.getElementById('act1'),
+    act2: document.getElementById('act2'),
+    act3: document.getElementById('act3')
+  };
+  let activeAct = 'act1';
+  let currentView = null;
   document.getElementById('meta').textContent = `ACS/TIGER ${payload.meta?.year || 'n/a'} · generated ${payload.meta?.generated_at || 'n/a'}`;
 
   function ramp(t){
@@ -243,6 +269,7 @@
     const spatial   = features.map(f=>f.properties[scol]);
     const loU=Math.min(...uninsured), hiU=Math.max(...uninsured);
     const limR=Math.max(...residuals.map(v=>Math.abs(v))), limS=Math.max(...spatial.map(v=>Math.abs(v)));
+    currentView = {pcol, rcol, scol, s, uninsured, predictor, residuals, spatial, loU, hiU, limR, limS};
 
     document.getElementById('m-n').textContent = String(features.length);
     document.getElementById('m-med').textContent = `${(summaries.uninsured_median || 0).toFixed(1)}%`;
@@ -250,24 +277,53 @@
     document.getElementById('m-ols').textContent = (s.ols_slope || 0).toFixed(3);
     document.getElementById('m-bym').textContent = (s.bym_slope || 0).toFixed(3);
 
-    drawMap('map0',
-      p=>({fillColor:linColor(p.uninsured_rate,loU,hiU),fillOpacity:.86,color:'#1e2a3c',weight:.5,opacity:.9}),
-      p=>`${p.namelsad}<br>Uninsured: ${p.uninsured_rate.toFixed(1)}%`
-    );
-    drawMap('map1',
-      p=>({fillColor:divColor(p[rcol],limR),fillOpacity:.86,color:'#1e2a3c',weight:.5,opacity:.9}),
-      p=>`${p.namelsad}<br>Residual: ${p[rcol].toFixed(2)}`
-    );
-    drawMap('map2',
-      p=>({fillColor:divColor(p[scol],limS),fillOpacity:.86,color:'#1e2a3c',weight:.5,opacity:.9}),
-      p=>`${p.namelsad}<br>Spatial effect: ${p[scol].toFixed(2)}`
-    );
-    drawHistogram(uninsured);
-    drawScatter(predictor, uninsured);
-    drawCoef(s.ols_slope || 0, s.bym_slope || 0, s.phi || 0);
+    renderActiveAct();
   }
 
+  function renderActiveAct(){
+    if(!currentView) return;
+    const {rcol, scol, s, uninsured, predictor, loU, hiU, limR, limS} = currentView;
+    if(activeAct === 'act1'){
+      drawMap('map0',
+        p=>({fillColor:linColor(p.uninsured_rate,loU,hiU),fillOpacity:.86,color:'#1e2a3c',weight:.5,opacity:.9}),
+        p=>`${p.namelsad}<br>Uninsured: ${p.uninsured_rate.toFixed(1)}%`
+      );
+      drawHistogram(uninsured);
+    }else if(activeAct === 'act2'){
+      drawMap('map1',
+        p=>({fillColor:divColor(p[rcol],limR),fillOpacity:.86,color:'#1e2a3c',weight:.5,opacity:.9}),
+        p=>`${p.namelsad}<br>Residual: ${p[rcol].toFixed(2)}`
+      );
+      drawScatter(predictor, uninsured);
+    }else{
+      drawMap('map2',
+        p=>({fillColor:divColor(p[scol],limS),fillOpacity:.86,color:'#1e2a3c',weight:.5,opacity:.9}),
+        p=>`${p.namelsad}<br>Spatial effect: ${p[scol].toFixed(2)}`
+      );
+      drawCoef(s.ols_slope || 0, s.bym_slope || 0, s.phi || 0);
+    }
+  }
+
+  function setActiveAct(actId){
+    activeAct = actId;
+    tabButtons.forEach(btn=>{
+      const on = btn.dataset.act === actId;
+      btn.classList.toggle('active', on);
+      btn.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    Object.entries(actSections).forEach(([id,el])=>el.classList.toggle('hidden', id !== actId));
+    setTimeout(renderActiveAct, 40);
+  }
+
+  tabButtons.forEach(btn=>btn.addEventListener('click', ()=>setActiveAct(btn.dataset.act)));
   predictorSel.addEventListener('change', update);
+  const methodBtn = document.getElementById('method-btn');
+  const methodDoc = document.getElementById('method-doc');
+  methodBtn.addEventListener('click', ()=>{
+    const open = methodDoc.style.display !== 'none';
+    methodDoc.style.display = open ? 'none' : 'block';
+    methodBtn.setAttribute('aria-expanded', open ? 'false' : 'true');
+  });
   update();
   window.addEventListener('resize', ()=>Object.values(maps).forEach(m=>m.invalidateSize()));
 })();
