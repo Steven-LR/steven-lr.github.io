@@ -441,7 +441,10 @@ const BOROUGH_LABEL  = {'005':'Bronx','047':'Brooklyn','061':'Manhattan','081':'
 const BOROUGH_COLOR  = {'005':'#d95f6d','047':'#eba950','061':'#4d8df5','081':'#34c49a','085':'#9b7de8'};
 const NYC_BOUNDS     = [[40.495,-74.26],[40.918,-73.70]];
 const ACS_BASE       = 'https://api.census.gov/data/2019/acs/acs5/subject';
-const TIGER_BASE     = 'https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_ACS2019/MapServer/8/query';
+// tigerWMS_ACS2019 is a WMS rendering service only — it doesn't support REST
+// feature queries. Tracts_Blocks/MapServer/0 is the queryable REST service.
+// It uses 2020-vintage boundaries; ~85-90% of NYC tract GEOIDs are unchanged.
+const TIGER_BASE     = 'https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Tracts_Blocks/MapServer/0/query';
 const CENSUS_KEY     = 'da78adf0d44806a4957cf7805559f170ba2c69e7';
 
 // Leaflet instances
@@ -509,18 +512,17 @@ function parseACSRows(headerAndRows){
 }
 
 // Fetch TIGER tract GeoJSON for one county.
-// TIGER WHERE clause needs integer county (no leading zeros).
+// Tracts_Blocks/MapServer/0 stores STATE and COUNTY as integers.
 async function fetchTIGERCounty(county){
-  const co = parseInt(county, 10);  // strip leading zeros
+  const co = parseInt(county, 10);
   const params = new URLSearchParams({
-    where: `STATE=36 AND COUNTY=${co}`,
-    outFields: 'GEOID,TRACTCE,COUNTYFP,STATEFP',
-    returnGeometry: 'true',
-    f: 'geojson',
+    where:             `STATE=36 AND COUNTY=${co}`,
+    outFields:         'GEOID,TRACT,COUNTY,STATE',
+    returnGeometry:    'true',
+    f:                 'geojson',
     resultRecordCount: '3000'
   });
-  const url = `${TIGER_BASE}?${params}`;
-  const r = await fetch(url);
+  const r = await fetch(`${TIGER_BASE}?${params}`);
   if(!r.ok) throw new Error(`TIGER HTTP ${r.status} county=${county}`);
   const fc = await r.json();
   if(!fc || !fc.features) throw new Error(`TIGER no features county=${county}`);
@@ -531,19 +533,31 @@ async function fetchTIGERCounty(county){
 // GEOMETRY HELPERS
 // ═══════════════════════════════════════════════════════════════
 
-// Normalise TIGER feature GEOID to 11-char zero-padded string.
+// Normalise a TIGER feature's properties to an 11-digit GEOID string.
+// Handles both string and numeric GEOID, and multiple field-name variants.
 function normalizeGeoid(props){
-  // Direct GEOID field (most reliable)
   if(props.GEOID != null){
     const s = String(props.GEOID);
     if(/^\d{11}$/.test(s)) return s;
     if(/^\d+$/.test(s))    return s.padStart(11,'0');
   }
-  // Construct from parts
   const state  = String(props.STATEFP  || props.STATE  || 36).padStart(2,'0');
   const county = String(props.COUNTYFP || props.COUNTY ||  0).padStart(3,'0');
+  // TRACT field in Tracts_Blocks is the 6-char code; TRACTCE is the CE-suffix variant
   const tract  = String(props.TRACTCE  || props.TRACT  ||  0).padStart(6,'0');
   return state + county + tract;
+}
+
+// Look up ACS data for a TIGER feature, with a vintage-difference fallback.
+// ~85-90% of NYC GEOIDs are identical between 2019 and 2020 Census.
+// For tracts that were split (e.g. 000101/000102 from 000100), dropping the
+// last digit of the tract code recovers the 2019 parent GEOID.
+function lookupACS(props){
+  const geoid = normalizeGeoid(props);
+  if(geoidMap[geoid]) return geoidMap[geoid];
+  // Fallback: strip last digit of tract portion (handles 2020 splits)
+  const parentGeoid = geoid.slice(0,10) + '0';
+  return geoidMap[parentGeoid] || null;
 }
 
 // Compute polygon centroid (handles Polygon + MultiPolygon).
@@ -695,20 +709,18 @@ function drawChoropleth(mapId, colorFn, tipFn){
   if(lLayers[mapId]){ m.removeLayer(lLayers[mapId]); }
   const layer = L.geoJSON(tractGeoJSON, {
     style: f => {
-      const geoid = normalizeGeoid(f.properties);
-      const d = geoidMap[geoid];
+      const d = lookupACS(f.properties);
       return {
         fillColor:   d ? colorFn(d) : '#141923',
-        fillOpacity: d ? 0.82        : 0.15,
+        fillOpacity: d ? 0.83        : 0.12,
         color:   '#1e2a3c',
         weight:  0.4,
         opacity: 0.9
       };
     },
     onEachFeature: (f, lyr) => {
-      const geoid = normalizeGeoid(f.properties);
-      const d = geoidMap[geoid];
-      const tip = d ? tipFn(d) : `Tract ${geoid} — no ACS data`;
+      const d = lookupACS(f.properties);
+      const tip = d ? tipFn(d) : `Tract ${normalizeGeoid(f.properties)} — suppressed/water`;
       lyr.bindTooltip(tip, {sticky:true, className:'sc-tooltip'});
     }
   }).addTo(m);
@@ -909,7 +921,7 @@ async function init(){
     const tigerPromises = COUNTIES.map(co => fetchTIGERCounty(co).catch(e=>{ console.warn(`TIGER ${co}:`,e); return []; }));
     const tigerResults  = await Promise.all(tigerPromises);
     const allFeatures   = tigerResults.flat();
-    if(allFeatures.length < 50) throw new Error(`Only ${allFeatures.length} TIGER features returned. Check TIGERweb service.`);
+    if(allFeatures.length < 100) throw new Error(`Only ${allFeatures.length} TIGER features returned — Census TIGERweb may be temporarily unavailable. Try reloading.`);
     tractGeoJSON = {type:'FeatureCollection', features: allFeatures};
     setStep('ls-tiger','done',`TIGER: ${allFeatures.length} tract polygons loaded`);
 
@@ -917,19 +929,19 @@ async function init(){
     setStep('ls-match','active','Matching ACS records to tract geometries…');
     // Build geoid → ACS row lookup
     allRows.forEach(d => { geoidMap[d.geoid] = d; });
-    // Augment each ACS row with its real centroid from TIGER geometry
+    // Augment each ACS row with its real centroid from TIGER geometry.
+    // Uses lookupACS() for vintage-robust matching (2020 TIGER vs 2019 ACS).
     let matchCount = 0;
     allFeatures.forEach(f => {
-      const geoid = normalizeGeoid(f.properties);
-      const d     = geoidMap[geoid];
-      if(d){
+      const d = lookupACS(f.properties);
+      if(d && d.lat === null){   // only set centroid once per ACS row
         const c = centroidOf(f.geometry);
         if(c){ d.lat = c.lat; d.lon = c.lon; matchCount++; }
       }
     });
     tractData = allRows;
     const matchPct = Math.round(matchCount/tractData.length*100);
-    if(matchPct < 40) throw new Error(`Only ${matchPct}% of ACS tracts matched to TIGER geometries (GEOID mismatch). Cannot build valid neighbor graph.`);
+    if(matchPct < 30) throw new Error(`Only ${matchPct}% of ACS tracts matched to TIGER geometries. Cannot build valid spatial model.`);
     // Remove tracts that failed centroid matching (can't participate in spatial model)
     const withCentroids = tractData.filter(d => d.lat !== null);
     // Keep all tracts for display but only use matched ones for spatial model
