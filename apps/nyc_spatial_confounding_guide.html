@@ -343,9 +343,9 @@
   <!-- ════ ACT 0 ════ -->
   <div id="act0" class="scene active">
     <div class="narrative">
-      Every map of New York City tells a story — but not always the story we think it does. Below is the <b>uninsured rate</b> across NYC census tracts from the 2019 ACS. The pattern is striking: the Bronx and parts of Queens and Brooklyn stand out immediately.<br><br>
-      Before drawing any conclusions about <i>why</i> — or what to do about it — there is a question worth pausing on: <b>Is this pattern telling us about healthcare access, or is it telling us about something deeper in how neighborhoods were shaped over decades?</b>
-      <div class="highlight">The same geographic forces that concentrated poverty and unemployment in certain neighborhoods also concentrated uninsurance. When variables share the same spatial pattern, standard analysis can mistake one for the other. That is spatial confounding.</div>
+      Every map of New York City tells a story — but not always the story we think it does. The <b>uninsured rate</b> across NYC census tracts (2019 ACS) shows a striking pattern: the Bronx and parts of Queens and Brooklyn stand out immediately.<br><br>
+      Before drawing any conclusions about <i>why</i>, there is a question worth pausing on: <b>Is this pattern revealing something about healthcare access, or about deeper structural forces that shaped these neighborhoods over decades?</b>
+      <div class="highlight">The geographic forces that concentrated poverty and unemployment in certain neighborhoods also concentrated uninsurance. When predictors and outcomes share the same spatial pattern, standard regression can mistake one for the other — that is <b>spatial confounding</b>.</div>
     </div>
     <div id="loading0" class="loading">Loading 2019 ACS data for NYC tracts from the Census API…</div>
     <div id="act0-content" style="display:none">
@@ -373,9 +373,9 @@
   <!-- ════ ACT 1 ════ -->
   <div id="act1" class="scene">
     <div class="narrative">
-      A common first step in health data analysis is to ask: <b>does poverty (or unemployment) predict the uninsured rate?</b> The scatterplot below runs that regression — and it finds a strong, significant relationship. It looks like a clean answer.<br><br>
-      But there is a hidden problem. Standard regression assumes each tract is an independent data point. In reality, <b>neighboring tracts are not independent</b> — they share history, infrastructure, and policy. When we map the residuals (the "leftovers" after the model explains what it can), they cluster spatially. That means the model quietly borrowed geographic signal and attributed it to the predictor. The coefficient is inflated.
-      <div class="highlight">A statistically significant result is not the same as a causally clean result. When residuals cluster on a map, that is the data telling you spatial confounding is present.</div>
+      A natural first step is to ask: <b>does poverty (or unemployment) predict the uninsured rate?</b> The scatterplot shows a strong, significant relationship — and the coefficient looks precise. But precision is not the same as accuracy.<br><br>
+      Standard regression treats each tract as an independent observation. In reality, <b>neighboring tracts are not independent</b> — they share history, infrastructure, and policy. When we map the residuals from the OLS model, they cluster geographically. This means the model absorbed neighborhood-level spatial structure and attributed part of it to the predictor, inflating the coefficient.
+      <div class="highlight">A significant p-value does not rule out spatial confounding. Clustered residuals on a map are a diagnostic signal that the independence assumption is violated — and that your estimate may be biased.</div>
     </div>
     <div class="select-row">
       <label>Predictor:</label>
@@ -387,7 +387,7 @@
     <div class="stats-row">
       <div class="metric"><div class="metric-label">OLS coefficient</div><div class="metric-val" id="s-coef">—</div><div class="metric-sub">Naive estimate</div></div>
       <div class="metric"><div class="metric-label">R²</div><div class="metric-val" id="s-r2">—</div><div class="metric-sub">Variance explained</div></div>
-      <div class="metric"><div class="metric-label">Moran's I on residuals</div><div class="metric-val" id="s-resid-mi">—</div><div class="metric-sub">Should be ~0 if model is valid</div></div>
+      <div class="metric"><div class="metric-label">Moran's I on residuals</div><div class="metric-val" id="s-resid-mi">—</div><div class="metric-sub">Near 0 = no spatial clustering in residuals</div></div>
     </div>
     <div class="two-col">
       <div class="card">
@@ -406,9 +406,9 @@
   <!-- ════ ACT 2 ════ -->
   <div id="act2" class="scene">
     <div class="narrative">
-      The BYM2 model (Besag-York-Mollié) is designed for exactly this situation. It separates the predictor's effect from the underlying spatial structure of neighborhoods. It asks: <b>after accounting for the fact that nearby tracts tend to be similar, how much of the relationship between poverty (or unemployment) and uninsurance is still there?</b><br><br>
-      The answer is almost always: <i>less than the naive model suggested</i>. Sometimes the coefficient shrinks substantially. Sometimes it changes direction. This is not a failure — it is a more honest picture. The spatial random effect absorbs the neighborhood-level geography that was confounding the estimate.
-      <div class="highlight">A smaller coefficient after spatial adjustment does not mean the relationship disappeared. It means we now know how much of the association was driven by place itself — and that is exactly the kind of insight that should inform where and how you intervene.</div>
+      The BYM2 model (Besag-York-Mollié) separates the predictor's effect from the underlying spatial structure of neighborhoods. It asks: <b>after accounting for the tendency of nearby tracts to be similar, how much of the relationship between poverty (or unemployment) and uninsurance remains?</b><br><br>
+      The answer is typically: <i>less than the naive model suggested</i>. The coefficient often shrinks — sometimes substantially. This is not a failure. The spatial random effect captures the neighborhood-level geography that was inflating the OLS estimate, yielding a more defensible picture of the predictor's independent contribution.
+      <div class="highlight">A smaller adjusted coefficient does not mean the relationship disappeared. It means we can now distinguish how much of the association is driven by the predictor versus by the geography of place — and that distinction directly shapes where and how to intervene.</div>
     </div>
     <div class="select-row">
       <label>Predictor:</label>
@@ -470,14 +470,16 @@ async function loadData(){
   const counties = ['005','047','061','081','085'];
   const vars = 'NAME,S2701_C04_001E,S1701_C03_001E,S2301_C04_001E';
   const base = 'https://api.census.gov/data/2019/acs/acs5/subject';
+  const key  = 'da78adf0d44806a4957cf7805559f170ba2c69e7';
   let rows = [];
   for(const co of counties){
     try{
-      const url = `${base}?get=${vars}&for=tract:*&in=state:36%20county:${co}`;
+      const url = `${base}?get=${vars}&for=tract:*&in=state:36%20county:${co}&key=${key}`;
       const r = await fetch(url);
+      if(!r.ok) throw new Error(`HTTP ${r.status}`);
       const d = await r.json();
       rows = rows.concat(d.slice(1));
-    }catch(e){}
+    }catch(e){ console.warn(`County ${co}:`, e.message); }
   }
   return rows;
 }
@@ -762,11 +764,12 @@ function renderAct2(){
     `<div class="leg-item"><div class="leg-sw" style="background:#1a3a6e"></div>Lower spatial effect</div>
      <div class="leg-item"><div class="leg-sw" style="background:#38c9a0"></div>Higher spatial effect</div>`;
   const predLabel = pred==='poverty'?'poverty':'unemployment';
+  const predLabelCap = pred==='poverty'?'Poverty':'Unemployment';
   document.getElementById('interpret2').innerHTML =
-    `The naive model suggested that for each 1-point increase in the <b>${predLabel} rate</b>, the uninsured rate rises by about <b>${olsSlope.toFixed(2)} points</b>.<br><br>
-    After accounting for neighborhood spatial structure, the BYM2-adjusted estimate is <b>${bymSlope.toFixed(2)} points</b> — a reduction of roughly <b>${attenPct}%</b>.<br><br>
-    This means approximately <b>${Math.round(phi*100)}% of the unexplained variation</b> in uninsured rates follows a spatial pattern — it belongs to <i>place</i>, not just to ${predLabel}.<br><br>
-    For a clinical director, this matters concretely: <b>if you intervene only on ${predLabel}, you are addressing part of the problem</b>. The spatial random effect surface on the left shows which neighborhoods carry additional burden that ${predLabel} alone does not explain — those are the tracts where place-based strategies (mobile units, community health workers, outreach partnerships) would complement income-focused interventions.`;
+    `<b>${predLabelCap} rate → uninsured rate:</b><br>
+    OLS estimated <b>${olsSlope.toFixed(2)} points per 1-point increase</b>. After spatial adjustment, the BYM2 estimate is <b>${bymSlope.toFixed(2)} points</b> — an attenuation of roughly <b>${attenPct}%</b>.<br><br>
+    The spatial random effect (left map) accounts for <b>${Math.round(phi*100)}% of residual variance</b>. That share belongs to <i>neighborhood geography</i> — shared history, infrastructure, and policy — not to ${predLabel} per se.<br><br>
+    <b>For decision-makers:</b> intervening on ${predLabel} alone addresses only part of the disparity. The tracts with elevated spatial random effects (warm colors on the left) carry burden that ${predLabel} does not explain. Those are the neighborhoods where place-based strategies — mobile clinics, community health workers, outreach partnerships — would have the most additional impact.`;
 }
 
 function goAct(n, el){
@@ -775,8 +778,10 @@ function goAct(n, el){
   document.getElementById('act'+n).classList.add('active');
   el.classList.add('active');
   currentAct=n;
-  if(n===1) setTimeout(renderAct1,50);
-  if(n===2) setTimeout(renderAct2,50);
+  // Use two rAF frames: first lets the browser apply display:block and compute layout,
+  // second guarantees clientWidth is populated before drawing canvases.
+  if(n===1) requestAnimationFrame(()=>requestAnimationFrame(renderAct1));
+  if(n===2) requestAnimationFrame(()=>requestAnimationFrame(renderAct2));
 }
 
 // ── Init ────────────────────────────────────────────────────────────────────
@@ -794,8 +799,6 @@ async function init(){
     document.getElementById('s-n').textContent   = tractData.length.toLocaleString();
     document.getElementById('s-med').textContent = median(uninsuredVals).toFixed(1)+'%';
     document.getElementById('s-mi').textContent  = mi.toFixed(3);
-    drawDotMap('map0', tractData.map(d=>({...d,_val:d.uninsured})),
-      d=>choroplethColor(d._val,lo,hi));
     document.getElementById('leg0').innerHTML=
       `<div class="leg-item"><div class="leg-sw" style="background:#1a3a6e"></div>Low uninsured</div>
        <div class="leg-item"><div class="leg-sw" style="background:#e05c6a"></div>High uninsured</div>`;
@@ -803,9 +806,15 @@ async function init(){
       Object.entries(BOROUGH_COLORS).map(([co,col])=>
         `<div class="bl-item"><div class="leg-sw" style="background:${col};border-radius:50%"></div>${BOROUGH_MAP[co]}</div>`
       ).join('');
-    drawHistogram('hist0', uninsuredVals, v=>choroplethColor(v,lo,hi));
+    // Show the content section FIRST so the canvas containers have layout width,
+    // then draw in the next animation frame to guarantee clientWidth > 0.
     document.getElementById('loading0').style.display='none';
     document.getElementById('act0-content').style.display='block';
+    requestAnimationFrame(()=>{
+      drawDotMap('map0', tractData.map(d=>({...d,_val:d.uninsured})),
+        d=>choroplethColor(d._val,lo,hi));
+      drawHistogram('hist0', uninsuredVals, v=>choroplethColor(v,lo,hi));
+    });
   }catch(e){
     document.getElementById('loading0').innerHTML=
       `<div class="error-msg">Could not load Census API data (${e.message}). This may be a network restriction in this environment. The app structure and models are fully functional — data loads correctly when run in a standard browser environment.</div>`;
