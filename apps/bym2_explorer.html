@@ -674,6 +674,116 @@
   .tries-found   { background: rgba(56,201,160,0.15); color: var(--accent2); }
   .tries-capped  { background: rgba(240,160,75,0.15);  color: var(--warn); }
   .tries-single  { background: rgba(122,138,170,0.12); color: var(--muted); }
+
+  /* ── Mobile toggle button (controls drawer) ── */
+  .mobile-ctrl-toggle {
+    display: none;
+    width: 100%;
+    padding: 10px 16px;
+    background: var(--surface);
+    border: none;
+    border-bottom: 1px solid var(--border);
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-align: left;
+    cursor: pointer;
+    align-items: center;
+    gap: 8px;
+  }
+  .mobile-ctrl-toggle .toggle-arrow {
+    margin-left: auto;
+    transition: transform 0.22s ease;
+    display: inline-block;
+  }
+  .mobile-ctrl-toggle[aria-expanded="true"] .toggle-arrow {
+    transform: rotate(180deg);
+  }
+
+  /* ── Responsive layout ── */
+  @media (max-width: 768px) {
+    /* Compact header */
+    header {
+      padding: 10px 14px;
+      gap: 10px;
+    }
+    header h1 {
+      font-size: 12px;
+      line-height: 1.35;
+      flex: 1;
+      min-width: 0;
+    }
+    /* Hide the subtitle tag on small screens */
+    header > span {
+      display: none;
+    }
+    .docs-tab {
+      padding: 5px 9px;
+      font-size: 10px;
+    }
+    .docs-tab .tab-icon { font-size: 11px; }
+
+    /* Show the controls toggle button */
+    .mobile-ctrl-toggle { display: flex; }
+
+    /* Three-column → single column */
+    .layout {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto auto auto;
+    }
+
+    /* Sidebar: collapsed by default; open class reveals it */
+    .sidebar {
+      border-right: none;
+      border-bottom: 1px solid var(--border);
+      display: none;
+      overflow: hidden;
+      max-height: none;
+    }
+    .sidebar.is-open {
+      display: flex;
+    }
+
+    /* Map canvas: scale to screen */
+    #grid-canvas {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .map-area {
+      padding: 14px;
+    }
+
+    /* Moran scatter: scale and allow horizontal scroll as fallback */
+    .scatter-area {
+      padding: 10px 14px;
+      overflow-x: auto;
+    }
+    #moran-canvas {
+      max-width: 100%;
+      height: auto;
+    }
+
+    /* Right panel: full width below map */
+    .right-panel {
+      border-left: none;
+      border-top: 1px solid var(--border);
+      max-height: none;
+      overflow: visible;
+    }
+
+    /* Stats grid: keep 2-col on small screens */
+    .stat-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    /* Docs panel: full width on mobile */
+    .docs-panel {
+      width: 100%;
+    }
+  }
 </style>
 </head>
 <body>
@@ -895,10 +1005,15 @@ p-value  =  2 · (1 − Φ(|Z|))</div>
   </div><!-- /docs-panel -->
 </div><!-- /docs-overlay -->
 
+<button class="mobile-ctrl-toggle" id="mobile-ctrl-toggle" aria-expanded="false" aria-controls="app-sidebar">
+  ⚙ Controls
+  <span class="toggle-arrow">▾</span>
+</button>
+
 <div class="layout">
 
   <!-- ════ SIDEBAR ════ -->
-  <aside class="sidebar">
+  <aside class="sidebar" id="app-sidebar">
 
     <div>
       <div class="section-label">Grid Parameters</div>
@@ -1048,6 +1163,17 @@ p-value  =  2 · (1 − Φ(|Z|))</div>
 
 <!-- ══════════════════ SCRIPTS ══════════════════ -->
 <script>
+// ── Mobile sidebar toggle ───────────────────────────────────────────────────
+(function () {
+  var btn = document.getElementById('mobile-ctrl-toggle');
+  var sidebar = document.getElementById('app-sidebar');
+  if (!btn || !sidebar) return;
+  btn.addEventListener('click', function () {
+    var open = sidebar.classList.toggle('is-open');
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+})();
+
 // ── Numeric helpers ────────────────────────────────────────────────────────
 
 function zeros(n) { return new Float64Array(n); }
