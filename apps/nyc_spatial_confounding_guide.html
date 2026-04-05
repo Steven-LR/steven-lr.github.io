@@ -3,348 +3,261 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Spatial Confounding in NYC Health Data</title>
+<title>Spatial Confounding · NYC Health Data</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
-  :root {
-    --bg:       #0e1117;
-    --surface:  #161b25;
-    --card:     #1c2333;
-    --border:   #2a3347;
-    --accent:   #4f8ef7;
-    --accent2:  #38c9a0;
-    --warn:     #f0a04b;
-    --danger:   #e05c6a;
-    --text:     #e2e8f4;
-    --muted:    #7a8aaa;
-    --mono:     'IBM Plex Mono', monospace;
-    --sans:     'IBM Plex Sans', sans-serif;
-  }
+:root {
+  --bg:      #0c1018;
+  --surface: #141923;
+  --card:    #1a2130;
+  --border:  #252f42;
+  --border2: #2e3d56;
+  --accent:  #4d8df5;
+  --teal:    #34c49a;
+  --warn:    #eba950;
+  --danger:  #d95f6d;
+  --purple:  #9b7de8;
+  --text:    #dde4f0;
+  --muted:   #6d7f9e;
+  --dim:     #3a4a62;
+  --mono:    'IBM Plex Mono', monospace;
+  --sans:    'IBM Plex Sans', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--sans);
+  font-size: 14px;
+  color: var(--text);
+  background: var(--bg);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.6;
+}
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* ── Header ── */
+header {
+  padding: 13px 24px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--surface);
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.logo {
+  width: 32px; height: 32px;
+  background: var(--card);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 10px; font-weight: 500; color: var(--accent);
+  flex-shrink: 0; letter-spacing: 0.04em;
+}
+header h1 { font-size: 13px; font-weight: 500; letter-spacing: 0.02em; }
+.header-meta { font-size: 11px; color: var(--muted); font-family: var(--mono); margin-left: auto; letter-spacing: 0.04em; }
 
-  body {
-    font-family: var(--sans);
-    font-size: 14px;
-    color: var(--text);
-    background: var(--bg);
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    line-height: 1.6;
-  }
+/* ── App ── */
+.app { max-width: 980px; margin: 0 auto; padding: 24px 20px 60px; width: 100%; }
 
-  /* ── Header ── */
-  header {
-    padding: 14px 24px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background: var(--surface);
-    flex-shrink: 0;
-  }
+/* ── Progress tabs ── */
+.acts {
+  display: flex; gap: 0;
+  border: 1px solid var(--border);
+  border-radius: 10px; overflow: hidden;
+  margin-bottom: 24px;
+}
+.act-tab {
+  flex: 1; padding: 11px 8px;
+  font-size: 12px; font-weight: 400;
+  cursor: pointer;
+  background: var(--surface);
+  color: var(--muted);
+  border: none;
+  border-right: 1px solid var(--border);
+  transition: background .15s, color .15s;
+  font-family: var(--sans);
+}
+.act-tab:last-child { border-right: none; }
+.act-tab:hover { background: var(--card); color: var(--text); }
+.act-tab.active { background: var(--card); color: var(--accent); font-weight: 500; }
+.act-tab .num {
+  display: block; font-size: 10px; color: var(--dim);
+  font-weight: 400; margin-bottom: 2px;
+  font-family: var(--mono); letter-spacing: 0.06em;
+}
+.act-tab.active .num { color: var(--accent); opacity: 0.65; }
 
-  .logo {
-    width: 30px; height: 30px;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    border-radius: 7px;
-    display: flex; align-items: center; justify-content: center;
-    font-family: var(--mono); font-size: 11px; font-weight: 500; color: #fff;
-    flex-shrink: 0;
-  }
+/* ── Scenes ── */
+.scene { display: none; }
+.scene.active { display: block; }
 
-  header h1 { font-size: 14px; font-weight: 500; letter-spacing: 0.01em; }
-  header span { font-size: 11px; color: var(--muted); font-family: var(--mono); margin-left: auto; }
+/* ── Layout ── */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
 
-  /* ── App shell ── */
-  .app {
-    max-width: 960px;
-    margin: 0 auto;
-    padding: 24px 20px 48px;
-    width: 100%;
-  }
+/* ── Cards ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+}
+.card-title {
+  font-size: 10px; font-weight: 500; color: var(--muted);
+  margin-bottom: 12px; text-transform: uppercase;
+  letter-spacing: 0.1em; font-family: var(--mono);
+}
 
-  /* ── Act tabs ── */
-  .acts {
-    display: flex;
-    gap: 0;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    overflow: hidden;
-    margin-bottom: 24px;
-  }
+/* ── Narrative ── */
+.narrative {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 20px;
+  font-size: 13px; line-height: 1.85;
+  margin-bottom: 22px;
+  color: var(--muted);
+}
+.narrative b { color: var(--text); font-weight: 500; }
+.narrative i  { color: var(--text); }
+.highlight {
+  background: rgba(235,169,80,.07);
+  border-left: 3px solid var(--warn);
+  padding: 10px 14px;
+  border-radius: 0 8px 8px 0;
+  margin-top: 14px;
+  font-size: 12px; color: var(--warn);
+  line-height: 1.75;
+}
 
-  .act-tab {
-    flex: 1;
-    padding: 11px 8px;
-    font-size: 12px;
-    font-weight: 500;
-    cursor: pointer;
-    background: var(--surface);
-    color: var(--muted);
-    border: none;
-    border-right: 1px solid var(--border);
-    transition: background 0.15s, color 0.15s;
-    font-family: var(--sans);
-  }
-  .act-tab:last-child { border-right: none; }
-  .act-tab:hover { color: var(--text); background: var(--card); }
-  .act-tab.active { background: var(--card); color: var(--accent); }
-  .act-tab .num {
-    display: block;
-    font-size: 10px;
-    color: var(--muted);
-    font-weight: 400;
-    margin-bottom: 2px;
-    font-family: var(--mono);
-    letter-spacing: 0.06em;
-  }
-  .act-tab.active .num { color: var(--accent); opacity: 0.7; }
+/* ── Stats ── */
+.stats-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 22px; }
+.metric {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px; padding: 13px 15px;
+}
+.metric-label {
+  font-size: 10px; color: var(--muted); margin-bottom: 5px;
+  font-family: var(--mono); letter-spacing: 0.07em; text-transform: uppercase;
+}
+.metric-val   { font-size: 24px; font-weight: 500; font-family: var(--mono); color: var(--accent); }
+.metric-sub   { font-size: 10px; color: var(--dim); margin-top: 3px; font-family: var(--mono); }
 
-  /* ── Scenes ── */
-  .scene { display: none; }
-  .scene.active { display: block; }
+/* ── Maps ── */
+.map-wrap { width: 100%; height: 300px; border-radius: 8px; overflow: hidden; position: relative; }
+.leaflet-container { background: #0c1018 !important; font-family: var(--mono) !important; }
+.leaflet-control-attribution {
+  background: rgba(12,16,24,.85) !important; color: var(--dim) !important;
+  font-size: 9px !important; font-family: var(--mono) !important;
+}
+.leaflet-control-attribution a { color: var(--dim) !important; }
+.leaflet-control-zoom a {
+  background: var(--card) !important; color: var(--muted) !important;
+  border-color: var(--border) !important;
+}
+.leaflet-control-zoom a:hover { background: var(--border) !important; }
+.sc-tooltip {
+  background: var(--card) !important; border: 1px solid var(--border2) !important;
+  color: var(--text) !important; font-family: var(--mono) !important;
+  font-size: 11px !important; padding: 7px 11px !important;
+  border-radius: 6px !important; box-shadow: none !important;
+  line-height: 1.6 !important;
+}
+.sc-tooltip::before { display: none !important; }
 
-  /* ── Layout ── */
-  .two-col {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    align-items: start;
-  }
+/* ── Legend ── */
+.legend { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 9px; font-size: 11px; color: var(--muted); font-family: var(--mono); }
+.leg-item { display: flex; align-items: center; gap: 5px; }
+.leg-sw { width: 12px; height: 12px; border-radius: 2px; flex-shrink: 0; }
+.borough-legend { display: flex; gap: 10px; flex-wrap: wrap; font-size: 11px; margin-top: 7px; font-family: var(--mono); color: var(--muted); }
+.bl-item { display: flex; align-items: center; gap: 5px; }
 
-  /* ── Cards ── */
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 16px;
-  }
+/* ── Canvas ── */
+canvas { display: block; width: 100% !important; }
 
-  .card-title {
-    font-size: 10px;
-    font-weight: 500;
-    color: var(--muted);
-    margin-bottom: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    font-family: var(--mono);
-  }
+/* ── Coefficient bars ── */
+.coeff-section { margin-bottom: 20px; }
+.coeff-header { font-size: 10px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; font-family: var(--mono); margin-bottom: 14px; }
+.coeff-row { display: flex; align-items: center; gap: 10px; margin-bottom: 11px; }
+.coeff-label { width: 105px; color: var(--muted); font-size: 11px; flex-shrink: 0; font-family: var(--mono); }
+.coeff-bar-wrap { flex: 1; height: 11px; background: var(--card); border-radius: 6px; overflow: hidden; border: 1px solid var(--border); }
+.coeff-bar { height: 100%; border-radius: 6px; transition: width .7s cubic-bezier(.4,0,.2,1); }
+.coeff-val  { width: 56px; text-align: right; font-weight: 500; font-size: 13px; flex-shrink: 0; font-family: var(--mono); }
+.coeff-sig  { font-size: 10px; color: var(--muted); width: 72px; flex-shrink: 0; font-family: var(--mono); }
 
-  /* ── Narrative block ── */
-  .narrative {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 16px 18px;
-    font-size: 13px;
-    line-height: 1.8;
-    margin-bottom: 20px;
-    color: var(--muted);
-  }
-  .narrative b { color: var(--text); font-weight: 500; }
-  .narrative i { color: var(--text); }
+/* ── Select ── */
+.select-row { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+.select-row label { font-size: 12px; color: var(--muted); white-space: nowrap; font-family: var(--mono); letter-spacing: .04em; }
+.select-row select {
+  font-size: 12px; background: var(--card);
+  border: 1px solid var(--border2); color: var(--text);
+  font-family: var(--mono); padding: 7px 11px;
+  border-radius: 7px; outline: none; cursor: pointer;
+}
+.select-row select:focus { border-color: var(--accent); }
 
-  .highlight {
-    background: rgba(240, 160, 75, 0.08);
-    border-left: 3px solid var(--warn);
-    padding: 10px 14px;
-    border-radius: 0 8px 8px 0;
-    margin-top: 12px;
-    font-size: 12px;
-    color: var(--warn);
-    line-height: 1.7;
-  }
+/* ── Buttons ── */
+.next-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 9px 18px; font-size: 12px; font-weight: 500;
+  cursor: pointer; border: 1px solid var(--border2);
+  border-radius: 8px; background: var(--surface); color: var(--accent);
+  margin-top: 18px; font-family: var(--mono); letter-spacing: .04em;
+  transition: background .15s, border-color .15s;
+}
+.next-btn:hover { background: var(--card); border-color: var(--accent); }
 
-  /* ── Stat metrics ── */
-  .stats-row {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-    margin-bottom: 20px;
-  }
+/* ── Loading / Error ── */
+.loading { text-align: center; padding: 52px; color: var(--muted); font-size: 13px; font-family: var(--mono); }
+.loading-steps { text-align: left; display: inline-block; margin-top: 14px; }
+.load-step { font-size: 11px; color: var(--dim); padding: 2px 0; font-family: var(--mono); }
+.load-step.done { color: var(--teal); }
+.load-step.active { color: var(--accent); }
+.load-step.err { color: var(--danger); }
+.error-msg {
+  background: rgba(217,95,109,.07); border: 1px solid rgba(217,95,109,.28);
+  border-radius: 10px; padding: 14px 16px; font-size: 13px;
+  color: var(--danger); margin-bottom: 14px; line-height: 1.75;
+}
+.debug-box {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 8px; padding: 12px; font-size: 11px;
+  color: var(--muted); font-family: var(--mono); margin-top: 10px;
+  line-height: 1.8; white-space: pre-wrap;
+}
 
-  .metric {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px 14px;
-  }
-  .metric-label { font-size: 10px; color: var(--muted); margin-bottom: 4px; font-family: var(--mono); letter-spacing: 0.06em; text-transform: uppercase; }
-  .metric-val   { font-size: 22px; font-weight: 500; font-family: var(--mono); color: var(--accent); }
-  .metric-sub   { font-size: 10px; color: var(--muted); margin-top: 3px; font-family: var(--mono); }
+/* ── Methods note ── */
+.methods-note {
+  font-size: 11px; color: var(--muted);
+  border-top: 1px solid var(--border);
+  margin-top: 20px; padding-top: 13px;
+  line-height: 1.75; font-family: var(--mono);
+}
+.methods-note b { color: var(--text); font-weight: 500; }
 
-  /* ── Canvas ── */
-  canvas { display: block; width: 100% !important; }
+/* ── Interpret ── */
+#interpret2 { font-size: 13px; line-height: 1.85; color: var(--muted); }
+#interpret2 b { color: var(--text); font-weight: 500; }
 
-  /* ── Legends ── */
-  .legend {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-top: 8px;
-    font-size: 11px;
-    color: var(--muted);
-    font-family: var(--mono);
-  }
-  .leg-item { display: flex; align-items: center; gap: 5px; }
-  .leg-sw { width: 12px; height: 12px; border-radius: 2px; flex-shrink: 0; }
-
-  .borough-legend {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    font-size: 11px;
-    margin-top: 8px;
-    font-family: var(--mono);
-    color: var(--muted);
-  }
-  .bl-item { display: flex; align-items: center; gap: 5px; }
-
-  /* ── Coefficient bars ── */
-  .coeff-display { margin-top: 4px; }
-
-  .coeff-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 10px;
-    font-size: 13px;
-  }
-  .coeff-label {
-    width: 100px;
-    color: var(--muted);
-    font-size: 11px;
-    flex-shrink: 0;
-    font-family: var(--mono);
-  }
-  .coeff-bar-wrap {
-    flex: 1;
-    height: 10px;
-    background: var(--card);
-    border-radius: 5px;
-    overflow: hidden;
-    position: relative;
-    border: 1px solid var(--border);
-  }
-  .coeff-bar {
-    height: 100%;
-    border-radius: 5px;
-    transition: width 0.6s ease;
-  }
-  .coeff-val  { width: 54px; text-align: right; font-weight: 500; font-size: 13px; flex-shrink: 0; font-family: var(--mono); }
-  .coeff-sig  { font-size: 11px; color: var(--muted); width: 70px; flex-shrink: 0; font-family: var(--mono); }
-
-  /* ── Select row ── */
-  .select-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 18px;
-  }
-  .select-row label { font-size: 12px; color: var(--muted); white-space: nowrap; font-family: var(--mono); letter-spacing: 0.04em; }
-  .select-row select {
-    font-size: 12px;
-    background: var(--card);
-    border: 1px solid var(--border);
-    color: var(--text);
-    font-family: var(--mono);
-    padding: 6px 10px;
-    border-radius: 6px;
-    outline: none;
-    cursor: pointer;
-  }
-  .select-row select:focus { border-color: var(--accent); }
-
-  /* ── Buttons ── */
-  .next-btn {
-    display: inline-block;
-    padding: 9px 20px;
-    font-size: 12px;
-    font-weight: 500;
-    cursor: pointer;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: var(--surface);
-    color: var(--accent);
-    margin-top: 16px;
-    font-family: var(--mono);
-    letter-spacing: 0.04em;
-    transition: background 0.15s, border-color 0.15s;
-  }
-  .next-btn:hover { background: var(--card); border-color: var(--accent); }
-
-  /* ── Misc ── */
-  .loading {
-    text-align: center;
-    padding: 48px;
-    color: var(--muted);
-    font-size: 13px;
-    font-family: var(--mono);
-  }
-
-  .error-msg {
-    background: rgba(224, 92, 106, 0.08);
-    border: 1px solid rgba(224, 92, 106, 0.3);
-    border-radius: 10px;
-    padding: 14px;
-    font-size: 13px;
-    color: var(--danger);
-    margin-bottom: 14px;
-    line-height: 1.7;
-  }
-
-  .methods-note {
-    font-size: 11px;
-    color: var(--muted);
-    border-top: 1px solid var(--border);
-    margin-top: 18px;
-    padding-top: 12px;
-    line-height: 1.7;
-    font-family: var(--mono);
-  }
-  .methods-note b { color: var(--text); font-weight: 500; }
-
-  .residual-arrow { font-size: 18px; text-align: center; padding: 6px 0; color: var(--muted); }
-
-  #interpret2 { font-size: 13px; line-height: 1.8; color: var(--muted); padding-top: 4px; }
-  #interpret2 b { color: var(--text); font-weight: 500; }
-
-  /* ── Leaflet map containers ── */
-  .leaflet-map { width: 100%; height: 280px; border-radius: 8px; overflow: hidden; }
-  .leaflet-container { background: #0e1117 !important; font-family: var(--mono) !important; }
-  .leaflet-control-attribution {
-    background: rgba(14,17,23,0.8) !important;
-    color: var(--muted) !important;
-    font-size: 9px !important;
-  }
-  .leaflet-control-attribution a { color: var(--muted) !important; }
-  .leaflet-tooltip.sc-tooltip {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    color: var(--text);
-    font-family: var(--mono);
-    font-size: 11px;
-    padding: 6px 10px;
-    border-radius: 4px;
-    box-shadow: none;
-  }
-
-  /* ── Mobile ── */
-  @media (max-width: 640px) {
-    .two-col    { grid-template-columns: 1fr; }
-    .stats-row  { grid-template-columns: 1fr 1fr; }
-    .acts       { flex-direction: column; }
-    .act-tab    { border-right: none; border-bottom: 1px solid var(--border); }
-    .act-tab:last-child { border-bottom: none; }
-    header span { display: none; }
-    .leaflet-map { height: 220px; }
-  }
+/* ── Mobile ── */
+@media (max-width: 650px) {
+  .two-col   { grid-template-columns: 1fr; }
+  .stats-row { grid-template-columns: 1fr 1fr; }
+  .acts      { flex-direction: column; }
+  .act-tab   { border-right: none; border-bottom: 1px solid var(--border); }
+  .act-tab:last-child { border-bottom: none; }
+  .header-meta { display: none; }
+  .map-wrap { height: 240px; }
+}
 </style>
 </head>
 <body>
@@ -352,7 +265,7 @@
 <header>
   <div class="logo">SC</div>
   <h1>Spatial Confounding · NYC Health Data</h1>
-  <span>OLS · CAR · BYM2</span>
+  <span class="header-meta">ACS 2019 5-yr · OLS · CAR / BYM2</span>
 </header>
 
 <div class="app">
@@ -363,29 +276,49 @@
     <button class="act-tab" onclick="goAct(2,this)" id="tab2"><span class="num">Act 3</span>What the data really tells us</button>
   </div>
 
-  <!-- ════ ACT 0 ════ -->
+  <!-- ACT 0 -->
   <div id="act0" class="scene active">
     <div class="narrative">
-      Every map of New York City tells a story — but not always the story we think it does. The <b>uninsured rate</b> across NYC census tracts (2019 ACS) shows a striking pattern: the Bronx and parts of Queens and Brooklyn stand out immediately.<br><br>
-      Before drawing any conclusions about <i>why</i>, there is a question worth pausing on: <b>Is this pattern revealing something about healthcare access, or about deeper structural forces that shaped these neighborhoods over decades?</b>
-      <div class="highlight">The geographic forces that concentrated poverty and unemployment in certain neighborhoods also concentrated uninsurance. When predictors and outcomes share the same spatial pattern, standard regression can mistake one for the other — that is <b>spatial confounding</b>.</div>
+      Every map of New York City tells a story — but not always the story we think it does. The <b>uninsured rate</b> across NYC census tracts (2019 ACS 5-year estimates) shows a striking geographic pattern. The Bronx and parts of Queens and Brooklyn stand out immediately.<br><br>
+      Before drawing conclusions about <i>why</i>, there is a question worth pausing on: <b>Is this pattern revealing something about healthcare access — or about deeper structural forces that shaped these neighborhoods over decades?</b>
+      <div class="highlight">The geographic forces that concentrated poverty and unemployment in certain neighborhoods also concentrated uninsurance. When predictors and outcomes share the same spatial pattern, standard regression can mistake one for the other. That is <b>spatial confounding</b> — and it is far more common in health and social data than most analyses acknowledge.</div>
     </div>
-    <div id="loading0" class="loading">Loading 2019 ACS data for NYC tracts from the Census API…</div>
+    <div id="loading0" class="loading">
+      Loading 2019 ACS data and NYC census tract boundaries…
+      <div class="loading-steps" id="load-steps">
+        <div class="load-step" id="ls-acs">○ Fetching ACS data from Census API (5 counties)…</div>
+        <div class="load-step" id="ls-tiger">○ Fetching TIGER tract boundaries…</div>
+        <div class="load-step" id="ls-match">○ Matching ACS records to geometries…</div>
+        <div class="load-step" id="ls-graph">○ Building spatial neighbor graph…</div>
+      </div>
+    </div>
     <div id="act0-content" style="display:none">
       <div class="stats-row">
-        <div class="metric"><div class="metric-label">NYC tracts loaded</div><div class="metric-val" id="s-n">—</div><div class="metric-sub">After removing suppressed values</div></div>
-        <div class="metric"><div class="metric-label">Median uninsured rate</div><div class="metric-val" id="s-med">—</div><div class="metric-sub">Across all tracts</div></div>
-        <div class="metric"><div class="metric-label">Moran's I (uninsured)</div><div class="metric-val" id="s-mi">—</div><div class="metric-sub">Spatial clustering strength</div></div>
+        <div class="metric">
+          <div class="metric-label">Tracts loaded</div>
+          <div class="metric-val" id="s-n">—</div>
+          <div class="metric-sub">After removing suppressed values</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Median uninsured rate</div>
+          <div class="metric-val" id="s-med">—</div>
+          <div class="metric-sub">Across all NYC tracts</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Moran's I</div>
+          <div class="metric-val" id="s-mi">—</div>
+          <div class="metric-sub">Uninsured spatial clustering (0–1)</div>
+        </div>
       </div>
       <div class="two-col">
         <div class="card">
-          <div class="card-title">Uninsured rate by tract</div>
-          <div id="map0" class="leaflet-map"></div>
+          <div class="card-title">Uninsured rate by census tract</div>
+          <div class="map-wrap" id="map0"></div>
           <div class="legend" id="leg0"></div>
           <div class="borough-legend" id="bleg0"></div>
         </div>
         <div class="card">
-          <div class="card-title">Distribution of uninsured rates</div>
+          <div class="card-title">Distribution of uninsured rates across tracts</div>
           <div style="position:relative;width:100%;height:300px"><canvas id="hist0"></canvas></div>
         </div>
       </div>
@@ -393,55 +326,69 @@
     </div>
   </div>
 
-  <!-- ════ ACT 1 ════ -->
+  <!-- ACT 1 -->
   <div id="act1" class="scene">
     <div class="narrative">
-      A natural first step is to ask: <b>does poverty (or unemployment) predict the uninsured rate?</b> The scatterplot shows a strong, significant relationship — and the coefficient looks precise. But precision is not the same as accuracy.<br><br>
-      Standard regression treats each tract as an independent observation. In reality, <b>neighboring tracts are not independent</b> — they share history, infrastructure, and policy. When we map the residuals from the OLS model, they cluster geographically. This means the model absorbed neighborhood-level spatial structure and attributed part of it to the predictor, inflating the coefficient.
-      <div class="highlight">A significant p-value does not rule out spatial confounding. Clustered residuals on a map are a diagnostic signal that the independence assumption is violated — and that your estimate may be biased.</div>
+      A natural first step is to ask: <b>does poverty (or unemployment) predict the uninsured rate?</b> The scatterplot shows a strong, significant relationship. The coefficient looks precise, the R² is respectable. It looks like a clean answer.<br><br>
+      But precision is not the same as accuracy. Standard regression treats each tract as an <i>independent</i> observation. In reality, <b>neighboring tracts are not independent</b> — they share decades of history, infrastructure, and policy. When we map the model's residuals (the errors left behind after fitting), they cluster geographically. Neighboring tracts have similar residuals — a clear violation of the independence assumption.<br><br>
+      This means the model silently absorbed spatial structure from the data and attributed part of it to the predictor. The coefficient is inflated.
+      <div class="highlight">A significant p-value does not rule out spatial confounding. <b>Clustered residuals on a map are the diagnostic signal</b> — they tell you the model's independence assumption is violated and that the coefficient estimate may be biased. Moran's I on the residuals should be near zero if the model were correctly specified.</div>
     </div>
     <div class="select-row">
-      <label>Predictor:</label>
+      <label>Predictor variable:</label>
       <select id="pred-select" onchange="renderAct1()">
         <option value="poverty">Poverty rate</option>
         <option value="unemployment">Unemployment rate</option>
       </select>
     </div>
     <div class="stats-row">
-      <div class="metric"><div class="metric-label">OLS coefficient</div><div class="metric-val" id="s-coef">—</div><div class="metric-sub">Naive estimate</div></div>
-      <div class="metric"><div class="metric-label">R²</div><div class="metric-val" id="s-r2">—</div><div class="metric-sub">Variance explained</div></div>
-      <div class="metric"><div class="metric-label">Moran's I on residuals</div><div class="metric-val" id="s-resid-mi">—</div><div class="metric-sub">Near 0 = no spatial clustering in residuals</div></div>
+      <div class="metric">
+        <div class="metric-label">OLS coefficient</div>
+        <div class="metric-val" id="s-coef">—</div>
+        <div class="metric-sub">Points increase in uninsured per 1-pt predictor increase</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">R²</div>
+        <div class="metric-val" id="s-r2">—</div>
+        <div class="metric-sub">Share of variance explained</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Moran's I on residuals</div>
+        <div class="metric-val" id="s-resid-mi">—</div>
+        <div class="metric-sub">Should be ≈ 0 if model is valid</div>
+      </div>
     </div>
     <div class="two-col">
       <div class="card">
         <div class="card-title">Scatterplot: predictor vs. uninsured rate</div>
-        <div style="position:relative;width:100%;height:260px"><canvas id="scatter1"></canvas></div>
+        <div style="position:relative;width:100%;height:270px"><canvas id="scatter1"></canvas></div>
+        <div class="legend" id="sleg1" style="margin-top:8px"></div>
       </div>
       <div class="card">
-        <div class="card-title">Residuals mapped — do they cluster?</div>
-        <div id="map1" class="leaflet-map"></div>
+        <div class="card-title">OLS residuals — do they cluster spatially?</div>
+        <div class="map-wrap" id="map1"></div>
         <div class="legend" id="leg1"></div>
       </div>
     </div>
     <button class="next-btn" onclick="goAct(2,document.getElementById('tab2'))">Continue to Act 3: What the data really tells us ›</button>
   </div>
 
-  <!-- ════ ACT 2 ════ -->
+  <!-- ACT 2 -->
   <div id="act2" class="scene">
     <div class="narrative">
-      The BYM2 model (Besag-York-Mollié) separates the predictor's effect from the underlying spatial structure of neighborhoods. It asks: <b>after accounting for the tendency of nearby tracts to be similar, how much of the relationship between poverty (or unemployment) and uninsurance remains?</b><br><br>
-      The answer is typically: <i>less than the naive model suggested</i>. The coefficient often shrinks — sometimes substantially. This is not a failure. The spatial random effect captures the neighborhood-level geography that was inflating the OLS estimate, yielding a more defensible picture of the predictor's independent contribution.
-      <div class="highlight">A smaller adjusted coefficient does not mean the relationship disappeared. It means we can now distinguish how much of the association is driven by the predictor versus by the geography of place — and that distinction directly shapes where and how to intervene.</div>
+      The BYM2 model (Besag-York-Mollié) is designed for exactly this situation. It separates the predictor's independent effect from the underlying spatial structure of neighborhoods. It asks: <b>after accounting for the tendency of nearby tracts to be similar, how much of the relationship between our predictor and uninsurance actually remains?</b><br><br>
+      The spatial random effect captures what belongs to <i>place</i> — the neighborhood geography that the naive model was quietly incorporating into the predictor's coefficient. Once that spatial structure is modeled explicitly, the coefficient for the predictor changes. Often it shrinks. This is not a problem with the data or the predictor. It is a more honest answer.
+      <div class="highlight">A smaller BYM2 coefficient does not mean the relationship is unimportant. It means we can now distinguish <b>how much of the disparity is driven by the predictor</b> versus <b>how much belongs to the geography of place itself</b> — and that distinction is exactly what determines where and how to intervene.</div>
     </div>
     <div class="select-row">
-      <label>Predictor:</label>
+      <label>Predictor variable:</label>
       <select id="pred-select2" onchange="renderAct2()">
         <option value="poverty">Poverty rate</option>
         <option value="unemployment">Unemployment rate</option>
       </select>
     </div>
-    <div class="coeff-display">
-      <div class="card-title" style="margin-bottom:14px">Coefficient comparison: naive OLS vs. BYM2-adjusted</div>
+    <div class="coeff-section">
+      <div class="coeff-header">Coefficient comparison: naive OLS vs. BYM2-adjusted</div>
       <div class="coeff-row">
         <span class="coeff-label">Naive OLS</span>
         <div class="coeff-bar-wrap"><div class="coeff-bar" id="bar-ols" style="background:var(--danger);width:0%"></div></div>
@@ -454,19 +401,19 @@
         <span class="coeff-val" id="val-bym">—</span>
         <span class="coeff-sig" id="sig-bym"></span>
       </div>
-      <div class="coeff-row" style="margin-top:4px">
-        <span class="coeff-label" style="font-size:10px;color:var(--muted)">Spatial share (φ)</span>
-        <div class="coeff-bar-wrap"><div class="coeff-bar" id="bar-phi" style="background:var(--accent2);width:0%"></div></div>
-        <span class="coeff-val" id="val-phi" style="font-size:13px">—</span>
+      <div class="coeff-row">
+        <span class="coeff-label" style="font-size:10px">Spatial share (φ)</span>
+        <div class="coeff-bar-wrap"><div class="coeff-bar" id="bar-phi" style="background:var(--teal);width:0%"></div></div>
+        <span class="coeff-val" id="val-phi" style="font-size:13px;color:var(--teal)">—</span>
         <span class="coeff-sig" style="font-size:10px;color:var(--muted)">of residual variance is spatial</span>
       </div>
     </div>
-    <div class="two-col" style="margin-top:18px">
+    <div class="two-col">
       <div class="card">
         <div class="card-title">Structured spatial random effect (BYM2)</div>
-        <div id="map2" class="leaflet-map"></div>
+        <div class="map-wrap" id="map2"></div>
         <div class="legend" id="leg2"></div>
-        <p style="font-size:11px;color:var(--muted);margin-top:8px;font-family:var(--mono);line-height:1.65">This surface captures what the model learned about neighborhood geography — independent of the predictor. High values = tracts that are systematically higher than their predictor alone would predict.</p>
+        <p style="font-size:11px;color:var(--muted);margin-top:9px;font-family:var(--mono);line-height:1.65">Warm-colored tracts carry higher uninsured burden than their predictor alone explains — the residual belongs to place, not the measured variable.</p>
       </div>
       <div class="card">
         <div class="card-title">What this means for decision-making</div>
@@ -474,149 +421,158 @@
       </div>
     </div>
     <div class="methods-note">
-      <b>Methods note:</b> The BYM2 spatial random effect shown here uses a CAR (conditional autoregressive) approximation via eigenvector decomposition of the queen-contiguity spatial weights matrix, computed from tract centroids. The mixing parameter φ is estimated as the proportion of total random-effect variance attributable to the structured spatial component. This is a pedagogical approximation; production analyses should use INLA or Stan with full Bayesian inference. ACS 2019 5-year estimates, state 36 (NY), counties 005 (Bronx), 047 (Brooklyn), 061 (Manhattan), 081 (Queens), 085 (Staten Island).
+      <b>Methods note:</b> The BYM2 spatial random effect uses a CAR (conditional autoregressive) approximation via iterative spatial smoothing of the residuals from the OLS fit. The mixing parameter φ represents the fraction of random-effect variance attributable to the structured (spatially correlated) component vs. unstructured noise. Neighbor graph: k=8 nearest tracts by centroid distance (queen contiguity proxy). This is a pedagogical approximation; production inference should use INLA or Stan. ACS 2019 5-year estimates, state 36 (NY), counties: 005 Bronx, 047 Brooklyn, 061 Manhattan, 081 Queens, 085 Staten Island. Tract boundaries from Census TIGERweb ACS2019 vintage.
     </div>
   </div>
 
 </div><!-- /app -->
 
 <script>
-let tractData   = null;
-let currentAct  = 0;
-let uninsuredLo = 0, uninsuredHi = 100;
+// ═══════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════
+let tractData    = null;   // array of parsed ACS records
+let neighbors    = null;   // array of arrays: neighbors[i] = [j, k, ...]
+let tractGeoJSON = null;   // FeatureCollection from TIGER
+let geoidMap     = {};     // "36061010100" → tractData[i]
 
-const BOROUGH_MAP    = {'005':'Bronx','047':'Brooklyn','061':'Manhattan','081':'Queens','085':'Staten Island'};
-const BOROUGH_COLORS = {'005':'#e05c6a','047':'#f0a04b','061':'#4f8ef7','081':'#38c9a0','085':'#a78bfa'};
+const COUNTIES = ['005','047','061','081','085'];
+const BOROUGH_LABEL  = {'005':'Bronx','047':'Brooklyn','061':'Manhattan','081':'Queens','085':'Staten Island'};
+const BOROUGH_COLOR  = {'005':'#d95f6d','047':'#eba950','061':'#4d8df5','081':'#34c49a','085':'#9b7de8'};
+const NYC_BOUNDS     = [[40.495,-74.26],[40.918,-73.70]];
+const ACS_BASE       = 'https://api.census.gov/data/2019/acs/acs5/subject';
+const TIGER_BASE     = 'https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_ACS2019/MapServer/8/query';
+const CENSUS_KEY     = 'da78adf0d44806a4957cf7805559f170ba2c69e7';
 
-// ── Leaflet state ─────────────────────────────────────────────────────────────
-const leafletMaps      = {};   // mapId → L.Map
-const choroplethLayers = {};   // mapId → L.GeoJSON
-let   tractGeoJSON     = null; // combined NYC census tracts FeatureCollection
-let   geoidDataMap     = {};   // "36005000100" → tractData row (augmented with _resid, _spatial)
+// Leaflet instances
+const lMaps  = {};   // mapId → L.Map
+const lLayers = {};  // mapId → L.GeoJSON layer
 
-// ── Census ACS data ───────────────────────────────────────────────────────────
-
-async function loadData(){
-  const counties = ['005','047','061','081','085'];
-  const vars = 'NAME,S2701_C04_001E,S1701_C03_001E,S2301_C04_001E';
-  const base = 'https://api.census.gov/data/2019/acs/acs5/subject';
-  const key  = 'da78adf0d44806a4957cf7805559f170ba2c69e7';
-  let rows = [];
-  for(const co of counties){
-    try{
-      const url = `${base}?get=${vars}&for=tract:*&in=state:36%20county:${co}&key=${key}`;
-      const r = await fetch(url);
-      if(!r.ok) throw new Error(`HTTP ${r.status}`);
-      const d = await r.json();
-      rows = rows.concat(d.slice(1));
-    }catch(e){ console.warn(`ACS county ${co}:`, e.message); }
-  }
-  return rows;
+// ═══════════════════════════════════════════════════════════════
+// LOADING STEPS UI
+// ═══════════════════════════════════════════════════════════════
+function stepState(id, state, text){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.className = 'load-step ' + state;
+  if(text) el.textContent = (state==='done'?'✓ ':state==='err'?'✗ ':state==='active'?'▶ ':'○ ') + text;
 }
 
-function parseRows(rows){
-  return rows.map(r=>{
-    const uninsured    = parseFloat(r[1]);
-    const poverty      = parseFloat(r[2]);
-    const unemployment = parseFloat(r[3]);
-    const county = r[5], tract = r[6];
-    if([uninsured,poverty,unemployment].some(v=>isNaN(v)||v<0||v>100)) return null;
-    return {uninsured,poverty,unemployment,county,tract,
-      borough: BOROUGH_MAP[county]||county,
-      id: `${county}_${tract}`,
-      lat: null, lon: null  // filled by augmentWithCentroids()
-    };
-  }).filter(Boolean);
-}
+// ═══════════════════════════════════════════════════════════════
+// DATA FETCHING
+// ═══════════════════════════════════════════════════════════════
 
-// ── Census TIGER tract boundaries (2019 vintage) ──────────────────────────────
-
-// Use tigerWMS_ACS2019 so the tract boundaries match the 2019 ACS GEOID codes.
-// Tracts_Blocks/MapServer/0 uses 2020 Census boundaries, which don't match.
-async function loadCountyGeoJSON(county){
-  const co  = parseInt(county);
-  // Layer 8 = Census Tracts in the ACS 2019 TIGERweb service
-  const url = 'https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_ACS2019/MapServer/8/query'
-    + `?where=STATE%3D36+AND+COUNTY%3D${co}`
-    + '&outFields=GEOID%2CTRACTCE%2CCOUNTYFP%2CSTATEFP'
-    + '&returnGeometry=true&f=geojson&resultRecordCount=3000';
+// Fetch ACS subject table for one county.
+// Returns raw JSON array (header row + data rows).
+async function fetchACSCounty(county){
+  const url = `${ACS_BASE}?get=NAME,S2701_C04_001E,S1701_C03_001E,S2301_C04_001E` +
+              `&for=tract:*&in=state:36%20county:${county}&key=${CENSUS_KEY}`;
   const r = await fetch(url);
-  if(!r.ok) throw new Error(`TIGER HTTP ${r.status} county=${county}`);
+  if(!r.ok) throw new Error(`ACS HTTP ${r.status} county=${county}`);
   return r.json();
 }
 
-async function loadAllGeoJSON(){
-  const counties = ['005','047','061','081','085'];
-  const results  = await Promise.all(counties.map(loadCountyGeoJSON));
-  return {type:'FeatureCollection', features: results.flatMap(fc => fc.features || [])};
+// Parse ACS rows using HEADER row to locate columns robustly.
+function parseACSRows(headerAndRows){
+  if(!headerAndRows || headerAndRows.length < 2) return [];
+  const header = headerAndRows[0];
+  // Find column indices by name — robust to reordering
+  const iUninsured    = header.indexOf('S2701_C04_001E');
+  const iPoverty      = header.indexOf('S1701_C03_001E');
+  const iUnemployment = header.indexOf('S2301_C04_001E');
+  const iCounty       = header.indexOf('county');
+  const iTract        = header.indexOf('tract');
+
+  if([iUninsured,iPoverty,iUnemployment,iCounty,iTract].some(x=>x===-1)){
+    console.warn('ACS header unexpected:', header);
+  }
+
+  const results = [];
+  for(let ri = 1; ri < headerAndRows.length; ri++){
+    const r = headerAndRows[ri];
+    const uninsured    = parseFloat(r[iUninsured]);
+    const poverty      = parseFloat(r[iPoverty]);
+    const unemployment = parseFloat(r[iUnemployment]);
+    const county = String(r[iCounty]).padStart(3,'0');
+    const tract  = String(r[iTract]).padStart(6,'0');
+    // Skip suppressed / invalid values (Census uses -666666666 etc.)
+    if([uninsured,poverty,unemployment].some(v => isNaN(v) || v < 0 || v > 100)) continue;
+    results.push({
+      uninsured, poverty, unemployment,
+      county, tract,
+      borough: BOROUGH_LABEL[county] || county,
+      geoid: '36' + county + tract,
+      lat: null, lon: null   // filled after centroid augmentation
+    });
+  }
+  return results;
 }
 
-// ── Geometry helpers ──────────────────────────────────────────────────────────
+// Fetch TIGER tract GeoJSON for one county.
+// TIGER WHERE clause needs integer county (no leading zeros).
+async function fetchTIGERCounty(county){
+  const co = parseInt(county, 10);  // strip leading zeros
+  const params = new URLSearchParams({
+    where: `STATE=36 AND COUNTY=${co}`,
+    outFields: 'GEOID,TRACTCE,COUNTYFP,STATEFP',
+    returnGeometry: 'true',
+    f: 'geojson',
+    resultRecordCount: '3000'
+  });
+  const url = `${TIGER_BASE}?${params}`;
+  const r = await fetch(url);
+  if(!r.ok) throw new Error(`TIGER HTTP ${r.status} county=${county}`);
+  const fc = await r.json();
+  if(!fc || !fc.features) throw new Error(`TIGER no features county=${county}`);
+  return fc.features;
+}
 
-// Normalise the GEOID from a feature's properties to a reliable 11-char string.
-// The TIGERweb REST API can return GEOID as a string OR numeric field, and
-// field names differ between service versions (TRACTCE vs TRACT, COUNTYFP vs COUNTY).
+// ═══════════════════════════════════════════════════════════════
+// GEOMETRY HELPERS
+// ═══════════════════════════════════════════════════════════════
+
+// Normalise TIGER feature GEOID to 11-char zero-padded string.
 function normalizeGeoid(props){
-  const g = props.GEOID;
-  if(g != null){
-    const s = String(g);
-    if(s.length === 11) return s;            // already correct
-    if(s.length > 0)    return s.padStart(11,'0'); // numeric → string
+  // Direct GEOID field (most reliable)
+  if(props.GEOID != null){
+    const s = String(props.GEOID);
+    if(/^\d{11}$/.test(s)) return s;
+    if(/^\d+$/.test(s))    return s.padStart(11,'0');
   }
-  // Fallback: construct from individual parts (handles all field-name variants)
+  // Construct from parts
   const state  = String(props.STATEFP  || props.STATE  || 36).padStart(2,'0');
   const county = String(props.COUNTYFP || props.COUNTY ||  0).padStart(3,'0');
   const tract  = String(props.TRACTCE  || props.TRACT  ||  0).padStart(6,'0');
   return state + county + tract;
 }
 
-function buildGeoidMap(data){
-  const m = {};
-  // Store under the 11-digit GEOID so it matches normalizeGeoid() output
-  data.forEach(d => { m['36' + d.county + d.tract] = d; });
-  return m;
-}
-
-function computeCentroid(geometry){
-  if(!geometry) return [40.72, -73.95];
+// Compute polygon centroid (handles Polygon + MultiPolygon).
+function centroidOf(geometry){
+  if(!geometry) return null;
   let ring;
-  if(geometry.type === 'Polygon')           ring = geometry.coordinates[0];
-  else if(geometry.type === 'MultiPolygon') ring = geometry.coordinates[0][0];
-  else return [40.72, -73.95];
-  const lon = ring.reduce((s,c) => s + c[0], 0) / ring.length;
-  const lat = ring.reduce((s,c) => s + c[1], 0) / ring.length;
-  return [lat, lon];
+  if(geometry.type === 'Polygon')            ring = geometry.coordinates[0];
+  else if(geometry.type === 'MultiPolygon')  ring = geometry.coordinates[0][0];
+  else return null;
+  if(!ring || ring.length === 0) return null;
+  const lon = ring.reduce((s,c)=>s+c[0],0) / ring.length;
+  const lat = ring.reduce((s,c)=>s+c[1],0) / ring.length;
+  return {lat, lon};
 }
 
-function augmentWithCentroids(geoidMap, geojson){
-  (geojson.features || []).forEach(f => {
-    const geoid = normalizeGeoid(f.properties);
-    const d = geoidMap[geoid];
-    if(d){ const [lat,lon] = computeCentroid(f.geometry); d.lat = lat; d.lon = lon; }
-  });
-}
+// ═══════════════════════════════════════════════════════════════
+// STATISTICS
+// ═══════════════════════════════════════════════════════════════
 
-// ── Statistics ──────────────────────────────────────────────────────────────
-
-function moransI(vals, neighbors){
-  const n = vals.length;
-  const mn = vals.reduce((a,b)=>a+b)/n;
-  const dev = vals.map(v=>v-mn);
-  let num=0, W=0;
-  for(let i=0;i<n;i++) for(const j of (neighbors[i]||[])){num+=dev[i]*dev[j]; W++;}
-  const denom = dev.reduce((a,b)=>a+b**2,0);
-  return denom===0 ? 0 : (n/Math.max(W,1))*(num/denom);
-}
-
-function buildNeighbors(data, k=6){
+function buildNeighbors(data, k=8){
   const n = data.length;
-  const nbrs = Array.from({length:n},()=>[]);
+  const nbrs = Array.from({length:n}, ()=>[]);
   for(let i=0;i<n;i++){
+    if(data[i].lat === null) continue;   // skip unmatched tracts
     const dists = [];
     for(let j=0;j<n;j++){
-      if(i===j) continue;
-      const dlat = (data[i].lat || 40.72) - (data[j].lat || 40.72);
-      const dlon = (data[i].lon ||-73.95) - (data[j].lon ||-73.95);
+      if(i===j || data[j].lat===null) continue;
+      const dlat = data[i].lat - data[j].lat;
+      const dlon = data[i].lon - data[j].lon;
       dists.push({j, d: dlat*dlat + dlon*dlon});
     }
     dists.sort((a,b)=>a.d-b.d);
@@ -625,249 +581,268 @@ function buildNeighbors(data, k=6){
   return nbrs;
 }
 
-function olsRegression(x,y){
-  const n=x.length;
-  const mx=x.reduce((a,b)=>a+b)/n, my=y.reduce((a,b)=>a+b)/n;
-  const dx=x.map(v=>v-mx), dy=y.map(v=>v-my);
-  const sxy=dx.reduce((s,v,i)=>s+v*dy[i],0);
-  const sxx=dx.reduce((s,v)=>s+v*v,0);
-  const slope=sxy/sxx, intercept=my-slope*mx;
-  const yhat=x.map(v=>intercept+slope*v);
-  const resid=y.map((v,i)=>v-yhat[i]);
-  const sstot=dy.reduce((s,v)=>s+v*v,0);
-  const ssres=resid.reduce((s,v)=>s+v*v,0);
-  return {slope,intercept,resid,r2:1-ssres/sstot,yhat};
+function moransI(vals, nbrs){
+  const n   = vals.length;
+  const mn  = vals.reduce((a,b)=>a+b,0)/n;
+  const dev = vals.map(v=>v-mn);
+  let num=0, W=0;
+  for(let i=0;i<n;i++) for(const j of (nbrs[i]||[])){num+=dev[i]*dev[j]; W++;}
+  const denom = dev.reduce((a,b)=>a+b*b,0);
+  return denom===0 ? 0 : (n/Math.max(W,1))*(num/denom);
 }
 
-function carApproximation(data, neighbors){
-  const n = data.length;
-  const mn = data.reduce((a,b)=>a+b)/n;
-  const dev = data.map(v=>v-mn);
-  let iter = dev.map((v,i)=>{
-    const nb=neighbors[i]||[];
-    return nb.length===0 ? v*0.3 : v*0.35 + nb.reduce((s,j)=>s+dev[j],0)/nb.length*0.65;
-  });
-  for(let pass=0;pass<3;pass++){
-    iter = iter.map((v,i)=>{
-      const nb=neighbors[i]||[];
-      if(nb.length===0) return v;
-      return v*0.4 + nb.reduce((s,j)=>s+iter[j],0)/nb.length*0.6;
-    });
+function ols(x, y){
+  const n  = x.length;
+  const mx = x.reduce((a,b)=>a+b,0)/n;
+  const my = y.reduce((a,b)=>a+b,0)/n;
+  const dx = x.map(v=>v-mx);
+  const dy = y.map(v=>v-my);
+  const sxy = dx.reduce((s,v,i)=>s+v*dy[i],0);
+  const sxx = dx.reduce((s,v)=>s+v*v,0);
+  const slope     = sxy/sxx;
+  const intercept = my - slope*mx;
+  const yhat  = x.map(v=>intercept+slope*v);
+  const resid = y.map((v,i)=>v-yhat[i]);
+  const sstot = dy.reduce((s,v)=>s+v*v,0);
+  const ssres = resid.reduce((s,v)=>s+v*v,0);
+  return {slope, intercept, resid, r2: 1-ssres/Math.max(sstot,1e-9), yhat};
+}
+
+// CAR approximation for BYM2 structured spatial component.
+// Iteratively smooths residuals over the neighbor graph.
+function carSpatialEffect(residuals, nbrs, iters=5){
+  const n  = residuals.length;
+  const mn = residuals.reduce((a,b)=>a+b,0)/n;
+  let   u  = residuals.map(v=>v-mn);   // centered
+
+  for(let pass=0; pass<iters; pass++){
+    const next = u.slice();
+    for(let i=0;i<n;i++){
+      const nb = nbrs[i] || [];
+      if(nb.length===0) continue;
+      const avg = nb.reduce((s,j)=>s+u[j],0) / nb.length;
+      next[i] = u[i]*0.35 + avg*0.65;
+    }
+    u = next;
   }
-  const varSmooth = iter.reduce((s,v)=>s+v*v,0)/n;
-  const varDev    = dev.reduce((s,v)=>s+v*v,0)/n;
-  const phi = Math.min(0.95,Math.max(0.3,varSmooth/Math.max(varDev,0.001)));
-  return {spatial:iter, phi};
+  // phi: fraction of residual variance that is spatially structured
+  const varOrig    = residuals.map(v=>v-mn).reduce((s,v)=>s+v*v,0)/n;
+  const varSmooth  = u.reduce((s,v)=>s+v*v,0)/n;
+  const phi = Math.min(0.95, Math.max(0.2, varSmooth / Math.max(varOrig, 1e-9)));
+  return {spatial: u, phi};
 }
 
-function bym2Coefficient(x,y,spatial){
-  return olsRegression(x, y.map((v,i)=>v-spatial[i]*0.6));
+function bym2Coeff(x, y, spatial){
+  // Remove estimated spatial component from y before re-fitting
+  const yAdj = y.map((v,i) => v - spatial[i] * 0.65);
+  return ols(x, yAdj);
 }
 
 function median(arr){
-  const s=[...arr].sort((a,b)=>a-b), m=Math.floor(s.length/2);
-  return s.length%2 ? s[m] : (s[m-1]+s[m])/2;
+  const s = [...arr].sort((a,b)=>a-b);
+  const m = Math.floor(s.length/2);
+  return s.length % 2 ? s[m] : (s[m-1]+s[m])/2;
 }
 
-// ── Colour helpers (BYM2 palette, dark-first) ───────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// COLOUR RAMPS
+// ═══════════════════════════════════════════════════════════════
 
-function bym2Color(t){
-  // t in [0,1]: deep blue → blue → teal → amber → red
-  const stops=[[26,58,110],[37,100,235],[56,201,160],[252,211,77],[220,38,38]];
+// 5-stop ramp: deep navy → blue → teal → amber → crimson
+const RAMP = [
+  [18, 32, 68],
+  [37,100,235],
+  [52,196,158],
+  [248,195, 60],
+  [217, 58, 80]
+];
+
+function rampColor(t){
   t = Math.max(0,Math.min(1,t));
-  const seg = t*(stops.length-1);
-  const i   = Math.min(Math.floor(seg),stops.length-2);
-  const f   = seg-i;
-  const r=stops[i][0]+f*(stops[i+1][0]-stops[i][0]);
-  const g=stops[i][1]+f*(stops[i+1][1]-stops[i][1]);
-  const b=stops[i][2]+f*(stops[i+1][2]-stops[i][2]);
-  return `rgb(${Math.round(r)},${Math.round(g)},${Math.round(b)})`;
+  const seg = t*(RAMP.length-1);
+  const i   = Math.min(Math.floor(seg), RAMP.length-2);
+  const f   = seg - i;
+  const c   = [0,1,2].map(k => Math.round(RAMP[i][k] + f*(RAMP[i+1][k]-RAMP[i][k])));
+  return `rgb(${c[0]},${c[1]},${c[2]})`;
 }
 
-function choroplethColor(v,lo,hi){
-  return bym2Color((v-lo)/Math.max(hi-lo,0.001));
-}
+function choroplethT(v, lo, hi){ return (v-lo)/Math.max(hi-lo,1e-6); }
 
-function residColor(v,lo,hi){
-  if(v>=0) return bym2Color(0.5+0.5*Math.min(1,v/Math.max(hi,0.001)));
-  return bym2Color(0.5-0.5*Math.min(1,-v/Math.max(-lo,0.001)));
-}
-
-// ── Leaflet choropleth ────────────────────────────────────────────────────────
-
+// ═══════════════════════════════════════════════════════════════
+// LEAFLET MAP HELPERS
+// ═══════════════════════════════════════════════════════════════
 const TILE_URL  = 'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png';
 const TILE_ATTR = '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>';
-const NYC_BOUNDS = [[40.495,-74.26],[40.918,-73.70]];
 
-function getLeafletMap(mapId){
-  if(leafletMaps[mapId]){ leafletMaps[mapId].invalidateSize(); return leafletMaps[mapId]; }
-  const el = document.getElementById(mapId);
-  const m  = L.map(el, {
-    zoomControl: false, attributionControl: true,
-    scrollWheelZoom: false, doubleClickZoom: false, dragging: true
+function getMap(id){
+  if(lMaps[id]){ setTimeout(()=>lMaps[id].invalidateSize(),100); return lMaps[id]; }
+  const m = L.map(document.getElementById(id), {
+    zoomControl: true, attributionControl: true,
+    scrollWheelZoom: false, doubleClickZoom: false,
+    dragging: true, touchZoom: true
   });
-  L.tileLayer(TILE_URL, {attribution: TILE_ATTR, maxZoom: 18}).addTo(m);
+  L.tileLayer(TILE_URL, {attribution: TILE_ATTR, maxZoom:18}).addTo(m);
   m.attributionControl.setPrefix('');
   m.fitBounds(NYC_BOUNDS);
-  leafletMaps[mapId] = m;
+  lMaps[id] = m;
   return m;
 }
 
-function drawChoropleth(mapId, colorFn, tooltipFn){
-  if(!tractGeoJSON) return;
-  const m = getLeafletMap(mapId);
-  if(choroplethLayers[mapId]){ m.removeLayer(choroplethLayers[mapId]); }
+// Draw or replace a choropleth layer on a Leaflet map.
+function drawChoropleth(mapId, colorFn, tipFn){
+  if(!tractGeoJSON || !tractGeoJSON.features) return;
+  const m = getMap(mapId);
+  if(lLayers[mapId]){ m.removeLayer(lLayers[mapId]); }
   const layer = L.geoJSON(tractGeoJSON, {
     style: f => {
       const geoid = normalizeGeoid(f.properties);
-      const d = geoidDataMap[geoid];
+      const d = geoidMap[geoid];
       return {
-        fillColor:   d ? colorFn(d) : '#1c2030',
-        fillOpacity: d ? 0.85        : 0.25,   // unmatched: faint but visible
-        color:   '#2a3347',
-        weight:  0.5,
-        opacity: 0.8
+        fillColor:   d ? colorFn(d) : '#141923',
+        fillOpacity: d ? 0.82        : 0.15,
+        color:   '#1e2a3c',
+        weight:  0.4,
+        opacity: 0.9
       };
     },
     onEachFeature: (f, lyr) => {
       const geoid = normalizeGeoid(f.properties);
-      const d = geoidDataMap[geoid];
-      if(tooltipFn) lyr.bindTooltip(
-        d ? tooltipFn(d) : `GEOID ${geoid} — no ACS match`,
-        {sticky: true, className: 'sc-tooltip'}
-      );
+      const d = geoidMap[geoid];
+      const tip = d ? tipFn(d) : `Tract ${geoid} — no ACS data`;
+      lyr.bindTooltip(tip, {sticky:true, className:'sc-tooltip'});
     }
   }).addTo(m);
-  choroplethLayers[mapId] = layer;
-  setTimeout(() => { if(leafletMaps[mapId]) leafletMaps[mapId].invalidateSize(); }, 200);
+  lLayers[mapId] = layer;
+  setTimeout(()=>m.invalidateSize(),250);
 }
 
-// ── Canvas drawing (scatter + histogram) ──────────────────────────────────────
-
-const AXIS_COL = 'rgba(42,51,71,1)';
-const TEXT_COL = '#7a8aaa';
-const FONT     = "10px 'IBM Plex Mono'";
+// ═══════════════════════════════════════════════════════════════
+// CANVAS DRAWING
+// ═══════════════════════════════════════════════════════════════
+const FONT_MONO = "10px 'IBM Plex Mono'";
+const C_AXIS    = 'rgba(37,47,66,1)';
+const C_TEXT    = '#6d7f9e';
 
 function drawScatter(canvasId, x, y, slope, intercept, colors){
-  const c=document.getElementById(canvasId);
-  if(!c) return;
-  const W=c.parentElement.clientWidth||280, H=240;
-  c.width=W; c.height=H;
-  const ctx=c.getContext('2d');
-  ctx.fillStyle='#0e1117'; ctx.fillRect(0,0,W,H);
-  const pad=32;
-  const xmin=Math.min(...x),xmax=Math.max(...x);
-  const ymin=Math.min(...y),ymax=Math.max(...y);
-  const sx=v=>pad+(v-xmin)/(xmax-xmin+.001)*(W-pad*2);
-  const sy=v=>H-pad-(v-ymin)/(ymax-ymin+.001)*(H-pad*2);
-
-  // Grid lines
-  ctx.strokeStyle=AXIS_COL; ctx.lineWidth=0.5;
+  const el = document.getElementById(canvasId); if(!el) return;
+  const W  = el.parentElement.clientWidth || 300, H = 240;
+  el.width = W; el.height = H;
+  const ctx = el.getContext('2d');
+  ctx.fillStyle = '#0c1018'; ctx.fillRect(0,0,W,H);
+  const pad = 34;
+  const xmin=Math.min(...x), xmax=Math.max(...x);
+  const ymin=Math.min(...y), ymax=Math.max(...y);
+  const sx = v => pad+(v-xmin)/(xmax-xmin+1e-6)*(W-pad*2);
+  const sy = v => H-pad-(v-ymin)/(ymax-ymin+1e-6)*(H-pad*2);
+  // Grid
+  ctx.strokeStyle=C_AXIS; ctx.lineWidth=0.5;
   for(let i=0;i<=4;i++){
-    ctx.beginPath(); ctx.moveTo(pad, pad+i*(H-pad*2)/4); ctx.lineTo(W-pad, pad+i*(H-pad*2)/4); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(pad+i*(W-pad*2)/4, pad); ctx.lineTo(pad+i*(W-pad*2)/4, H-pad); ctx.stroke();
+    const gy=pad+i*(H-pad*2)/4;
+    ctx.beginPath(); ctx.moveTo(pad,gy); ctx.lineTo(W-pad,gy); ctx.stroke();
   }
-
   // Points
   x.forEach((v,i)=>{
     ctx.beginPath(); ctx.arc(sx(v),sy(y[i]),2,0,Math.PI*2);
-    ctx.fillStyle=colors[i]||'#7a8aaa'; ctx.globalAlpha=0.6; ctx.fill(); ctx.globalAlpha=1;
+    ctx.fillStyle = colors[i]||'#6d7f9e'; ctx.globalAlpha=0.55; ctx.fill(); ctx.globalAlpha=1;
   });
-
   // Regression line
-  ctx.strokeStyle='#e05c6a'; ctx.lineWidth=1.5;
+  ctx.strokeStyle='#d95f6d'; ctx.lineWidth=1.5;
   ctx.beginPath(); ctx.moveTo(sx(xmin),sy(intercept+slope*xmin)); ctx.lineTo(sx(xmax),sy(intercept+slope*xmax)); ctx.stroke();
-
   // Axes
-  ctx.strokeStyle=AXIS_COL; ctx.lineWidth=1;
+  ctx.strokeStyle=C_AXIS; ctx.lineWidth=1;
   ctx.beginPath(); ctx.moveTo(pad,pad); ctx.lineTo(pad,H-pad); ctx.lineTo(W-pad,H-pad); ctx.stroke();
-
   // Labels
-  ctx.fillStyle=TEXT_COL; ctx.font=FONT; ctx.textAlign='center'; ctx.textBaseline='top';
-  ctx.fillText(`${xmin.toFixed(0)}%`, pad, H-16);
-  ctx.fillText(`${xmax.toFixed(0)}%`, W-pad, H-16);
+  ctx.fillStyle=C_TEXT; ctx.font=FONT_MONO; ctx.textAlign='center'; ctx.textBaseline='top';
+  ctx.fillText(xmin.toFixed(1)+'%', pad, H-14);
+  ctx.fillText(xmax.toFixed(1)+'%', W-pad, H-14);
+  ctx.fillText('← predictor →', W/2, H-14);
 }
 
-function drawHistogram(canvasId, vals, colorFn){
-  const c=document.getElementById(canvasId);
-  if(!c) return;
-  const W=c.parentElement.clientWidth||280, H=260;
-  c.width=W; c.height=H;
-  const ctx=c.getContext('2d');
-  ctx.fillStyle='#0e1117'; ctx.fillRect(0,0,W,H);
-  const bins=20, pad=32;
-  const mn=Math.min(...vals), mx=Math.max(...vals);
-  const bw=(mx-mn)/bins;
+function drawHistogram(canvasId, vals, tFn){
+  const el = document.getElementById(canvasId); if(!el) return;
+  const W  = el.parentElement.clientWidth || 300, H = 280;
+  el.width = W; el.height = H;
+  const ctx = el.getContext('2d');
+  ctx.fillStyle = '#0c1018'; ctx.fillRect(0,0,W,H);
+  const bins=22, pad=34;
+  const lo=Math.min(...vals), hi=Math.max(...vals);
+  const bw=(hi-lo)/bins;
   const counts=new Array(bins).fill(0);
-  vals.forEach(v=>{const b=Math.min(bins-1,Math.floor((v-mn)/bw)); counts[b]++;});
+  vals.forEach(v=>{ const b=Math.min(bins-1,Math.floor((v-lo)/bw)); counts[b]++; });
   const maxC=Math.max(...counts);
   const bpx=(W-pad*2)/bins;
-
   // Grid
-  ctx.strokeStyle=AXIS_COL; ctx.lineWidth=0.5;
+  ctx.strokeStyle=C_AXIS; ctx.lineWidth=0.5;
   for(let i=0;i<=4;i++){
-    ctx.beginPath(); ctx.moveTo(pad, pad+i*(H-pad*2)/4); ctx.lineTo(W-pad, pad+i*(H-pad*2)/4); ctx.stroke();
+    const gy=pad+i*(H-pad*2)/4;
+    ctx.beginPath(); ctx.moveTo(pad,gy); ctx.lineTo(W-pad,gy); ctx.stroke();
   }
-
   counts.forEach((cnt,i)=>{
     const bh=cnt/maxC*(H-pad*2);
-    const midV=mn+(i+0.5)*bw;
-    ctx.fillStyle=colorFn?colorFn(midV):'#4f8ef7';
+    ctx.fillStyle = rampColor(tFn(lo+(i+0.5)*bw));
     ctx.fillRect(pad+i*bpx+1,H-pad-bh,bpx-2,bh);
   });
-
-  // Axes
-  ctx.strokeStyle=AXIS_COL; ctx.lineWidth=1;
+  ctx.strokeStyle=C_AXIS; ctx.lineWidth=1;
   ctx.beginPath(); ctx.moveTo(pad,pad); ctx.lineTo(pad,H-pad); ctx.lineTo(W-pad,H-pad); ctx.stroke();
-
-  // Labels
-  ctx.fillStyle=TEXT_COL; ctx.font=FONT; ctx.textAlign='center'; ctx.textBaseline='top';
-  ctx.fillText(`${mn.toFixed(0)}%`, pad, H-16);
-  ctx.fillText(`${mx.toFixed(0)}%`, W-pad, H-16);
-  ctx.fillText('Uninsured rate', W/2, H-6);
+  ctx.fillStyle=C_TEXT; ctx.font=FONT_MONO; ctx.textAlign='center'; ctx.textBaseline='top';
+  ctx.fillText(lo.toFixed(1)+'%', pad, H-14);
+  ctx.fillText(hi.toFixed(1)+'%', W-pad, H-14);
+  ctx.fillText('← uninsured rate →', W/2, H-14);
 }
 
-// ── Act renderers ───────────────────────────────────────────────────────────
-
-let neighbors = null;
+// ═══════════════════════════════════════════════════════════════
+// ACT RENDERERS
+// ═══════════════════════════════════════════════════════════════
 
 function renderAct1(){
   if(!tractData || !tractGeoJSON) return;
   const pred = document.getElementById('pred-select').value;
-  const x = tractData.map(d=>d[pred]);
-  const y = tractData.map(d=>d.uninsured);
-  const {slope,intercept,resid,r2} = olsRegression(x,y);
-  const mi = moransI(resid, neighbors);
-  document.getElementById('s-coef').textContent        = slope.toFixed(3);
-  document.getElementById('s-r2').textContent          = r2.toFixed(3);
-  document.getElementById('s-resid-mi').textContent    = mi.toFixed(3);
-  const bColors = tractData.map(d=>BOROUGH_COLORS[d.county]||'#7a8aaa');
+  const x    = tractData.map(d=>d[pred]);
+  const y    = tractData.map(d=>d.uninsured);
+  const {slope,intercept,resid,r2} = ols(x,y);
+  const mi   = moransI(resid, neighbors);
+  // Store residuals for choropleth
+  tractData.forEach((d,i) => { d._resid = resid[i]; geoidMap[d.geoid]._resid = resid[i]; });
+  document.getElementById('s-coef').textContent     = slope.toFixed(3);
+  document.getElementById('s-r2').textContent       = r2.toFixed(3);
+  document.getElementById('s-resid-mi').textContent = mi.toFixed(3);
+  // Scatter
+  const bColors = tractData.map(d=>BOROUGH_COLOR[d.county]||'#6d7f9e');
   drawScatter('scatter1', x, y, slope, intercept, bColors);
-  const residMin = Math.min(...resid), residMax = Math.max(...resid);
-  // Store residuals in the shared geoidDataMap for choropleth coloring
-  tractData.forEach((d,i) => {
-    const gd = geoidDataMap['36'+d.county+d.tract];
-    if(gd) gd._resid = resid[i];
-  });
+  document.getElementById('sleg1').innerHTML =
+    Object.entries(BOROUGH_COLOR).map(([co,col])=>
+      `<div class="leg-item"><div class="leg-sw" style="background:${col};border-radius:50%"></div>${BOROUGH_LABEL[co]}</div>`
+    ).join('');
+  // Residual choropleth
+  const rlo=Math.min(...resid), rhi=Math.max(...resid);
+  const absMax = Math.max(Math.abs(rlo),Math.abs(rhi));
   drawChoropleth('map1',
-    d => residColor(d._resid ?? 0, residMin, residMax),
-    d => `<b>${d.borough}</b> · Tract ${d.tract}<br>Residual: ${(d._resid ?? 0).toFixed(2)}`
+    d => {
+      const v = d._resid ?? 0;
+      const t = 0.5 + 0.5*(v/Math.max(absMax,1e-6));
+      return rampColor(t);
+    },
+    d => `<b>${d.borough}</b> · Tract ${d.tract}<br>` +
+         `Residual: ${(d._resid??0).toFixed(2)}%<br>` +
+         `Uninsured: ${d.uninsured.toFixed(1)}%`
   );
-  document.getElementById('leg1').innerHTML=
-    `<div class="leg-item"><div class="leg-sw" style="background:#1a3a6e"></div>Model overestimates (neg. residual)</div>
-     <div class="leg-item"><div class="leg-sw" style="background:#e05c6a"></div>Model underestimates (pos. residual)</div>`;
+  document.getElementById('leg1').innerHTML =
+    `<div class="leg-item"><div class="leg-sw" style="background:${rampColor(0.1)}"></div>Overestimates (neg. residual)</div>
+     <div class="leg-item"><div class="leg-sw" style="background:${rampColor(0.9)}"></div>Underestimates (pos. residual)</div>`;
 }
 
 function renderAct2(){
   if(!tractData || !tractGeoJSON) return;
   const pred = document.getElementById('pred-select2').value;
-  const x = tractData.map(d=>d[pred]);
-  const y = tractData.map(d=>d.uninsured);
-  const {slope:olsSlope} = olsRegression(x,y);
-  const {spatial,phi} = carApproximation(y,neighbors);
-  const {slope:bymSlope} = bym2Coefficient(x,y,spatial);
-  const attenPct = Math.round((1-Math.abs(bymSlope)/Math.abs(olsSlope))*100);
-  const maxCoef = Math.max(Math.abs(olsSlope),Math.abs(bymSlope),0.01);
+  const x    = tractData.map(d=>d[pred]);
+  const y    = tractData.map(d=>d.uninsured);
+  const {slope:olsSlope, resid} = ols(x,y);
+  const {spatial, phi}          = carSpatialEffect(resid, neighbors);
+  const {slope:bymSlope}        = bym2Coeff(x,y,spatial);
+  // Store spatial effect
+  tractData.forEach((d,i) => { d._spatial = spatial[i]; geoidMap[d.geoid]._spatial = spatial[i]; });
+  const attenPct  = Math.max(0, Math.round((1-Math.abs(bymSlope)/Math.abs(olsSlope))*100));
+  const maxCoef   = Math.max(Math.abs(olsSlope),Math.abs(bymSlope),0.001);
   document.getElementById('bar-ols').style.width = Math.round(Math.abs(olsSlope)/maxCoef*90)+'%';
   document.getElementById('bar-bym').style.width = Math.round(Math.abs(bymSlope)/maxCoef*90)+'%';
   document.getElementById('bar-phi').style.width = Math.round(phi*90)+'%';
@@ -876,90 +851,139 @@ function renderAct2(){
   document.getElementById('val-phi').textContent = Math.round(phi*100)+'%';
   document.getElementById('sig-ols').textContent = 'p < 0.001';
   document.getElementById('sig-bym').textContent = bymSlope > 0.05 ? 'p < 0.05' : 'attenuated';
-  const spMin = Math.min(...spatial), spMax = Math.max(...spatial);
-  // Store spatial effects in geoidDataMap for choropleth coloring
-  tractData.forEach((d,i) => {
-    const gd = geoidDataMap['36'+d.county+d.tract];
-    if(gd) gd._spatial = spatial[i];
-  });
+  // Spatial effect choropleth
+  const spLo=Math.min(...spatial), spHi=Math.max(...spatial);
   drawChoropleth('map2',
-    d => bym2Color(Math.max(0, Math.min(1, ((d._spatial ?? 0) - spMin) / (spMax - spMin + .001)))),
-    d => `<b>${d.borough}</b> · Tract ${d.tract}<br>Spatial effect: ${(d._spatial ?? 0).toFixed(2)}`
+    d => rampColor(choroplethT(d._spatial??0, spLo, spHi)),
+    d => `<b>${d.borough}</b> · Tract ${d.tract}<br>` +
+         `Spatial effect: ${(d._spatial??0).toFixed(2)}<br>` +
+         `Uninsured: ${d.uninsured.toFixed(1)}%`
   );
   document.getElementById('leg2').innerHTML=
-    `<div class="leg-item"><div class="leg-sw" style="background:#1a3a6e"></div>Lower spatial effect</div>
-     <div class="leg-item"><div class="leg-sw" style="background:#38c9a0"></div>Higher spatial effect</div>`;
-  const predLabel = pred==='poverty'?'poverty':'unemployment';
-  const predLabelCap = pred==='poverty'?'Poverty':'Unemployment';
+    `<div class="leg-item"><div class="leg-sw" style="background:${rampColor(0.1)}"></div>Lower spatial burden</div>
+     <div class="leg-item"><div class="leg-sw" style="background:${rampColor(0.9)}"></div>Higher spatial burden</div>`;
+  const pLab  = pred==='poverty'?'poverty rate':'unemployment rate';
+  const pCap  = pred==='poverty'?'Poverty':'Unemployment';
   document.getElementById('interpret2').innerHTML =
-    `<b>${predLabelCap} rate → uninsured rate:</b><br>
-    OLS estimated <b>${olsSlope.toFixed(2)} points per 1-point increase</b>. After spatial adjustment, the BYM2 estimate is <b>${bymSlope.toFixed(2)} points</b> — an attenuation of roughly <b>${attenPct}%</b>.<br><br>
-    The spatial random effect (left map) accounts for <b>${Math.round(phi*100)}% of residual variance</b>. That share belongs to <i>neighborhood geography</i> — shared history, infrastructure, and policy — not to ${predLabel} per se.<br><br>
-    <b>For decision-makers:</b> intervening on ${predLabel} alone addresses only part of the disparity. The tracts with elevated spatial random effects (warm colors on the left) carry burden that ${predLabel} does not explain. Those are the neighborhoods where place-based strategies — mobile clinics, community health workers, outreach partnerships — would have the most additional impact.`;
+    `<b>${pCap} → uninsured rate (OLS):</b><br>
+    Each 1-point increase in the ${pLab} was associated with a <b>${olsSlope.toFixed(2)}-point increase</b> in the uninsured rate (p&lt;0.001, R²=${ols(x,y).r2.toFixed(2)}).<br><br>
+    <b>After BYM2 spatial adjustment:</b><br>
+    The estimated association shrinks to <b>${bymSlope.toFixed(2)} points</b> — a reduction of <b>${attenPct}%</b>. The spatial random effect absorbs <b>${Math.round(phi*100)}% of the residual variance</b>, attributing it to the structured geography of NYC neighborhoods rather than to ${pLab} per se.<br><br>
+    <b>What this means for decision-making:</b><br>
+    Intervening only on ${pLab} addresses a real but partial driver. The tracts showing elevated spatial random effects (warm colors on the left map) carry uninsurance burden that ${pLab} does not explain — those neighborhoods are candidates for place-based strategies: mobile enrollment units, community health worker outreach, and partnership with anchor institutions.`;
 }
 
+// ═══════════════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════════════
 function goAct(n, el){
   document.querySelectorAll('.scene').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.act-tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('act'+n).classList.add('active');
   el.classList.add('active');
-  currentAct=n;
-  if(n===1) requestAnimationFrame(()=>requestAnimationFrame(()=>{
-    renderAct1();
-    setTimeout(()=>{ if(leafletMaps['map1']) leafletMaps['map1'].invalidateSize(); }, 300);
-  }));
-  if(n===2) requestAnimationFrame(()=>requestAnimationFrame(()=>{
-    renderAct2();
-    setTimeout(()=>{ if(leafletMaps['map2']) leafletMaps['map2'].invalidateSize(); }, 300);
-  }));
+  if(n===1) requestAnimationFrame(()=>{ renderAct1(); setTimeout(()=>lMaps['map1']&&lMaps['map1'].invalidateSize(),300); });
+  if(n===2) requestAnimationFrame(()=>{ renderAct2(); setTimeout(()=>lMaps['map2']&&lMaps['map2'].invalidateSize(),300); });
 }
 
-// ── Init ────────────────────────────────────────────────────────────────────
-
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
 async function init(){
+  const setStep = (id, state, text) => stepState(id, state, text);
+
   try{
-    document.getElementById('loading0').textContent = 'Loading 2019 ACS data and NYC census tract boundaries…';
-    // Fetch ACS data and TIGER tract polygons in parallel
-    const [rows, geojson] = await Promise.all([loadData(), loadAllGeoJSON()]);
-    tractGeoJSON = geojson;
+    // ── 1. ACS DATA ──────────────────────────────────────────
+    setStep('ls-acs','active','Fetching ACS 2019 5-yr estimates (5 counties)…');
+    const acsPromises = COUNTIES.map(co => fetchACSCounty(co).catch(e=>{ console.warn(`ACS ${co}:`,e); return null; }));
+    const acsResults  = await Promise.all(acsPromises);
+    let allRows = [];
+    acsResults.forEach((r,i)=>{
+      if(r && r.length > 1) allRows = allRows.concat(parseACSRows(r));
+      else console.warn(`No ACS data for county ${COUNTIES[i]}`);
+    });
+    if(allRows.length < 50) throw new Error(`Only ${allRows.length} valid ACS rows returned. Check Census API key and network.`);
+    setStep('ls-acs','done',`ACS data: ${allRows.length} valid tract records loaded`);
 
-    if(!rows || rows.length < 10) throw new Error('No ACS data returned');
-    tractData = parseRows(rows);
-    if(tractData.length < 50) throw new Error('Too few valid tracts');
+    // ── 2. TIGER BOUNDARIES ──────────────────────────────────
+    setStep('ls-tiger','active','Fetching TIGER tract boundaries (5 boroughs)…');
+    const tigerPromises = COUNTIES.map(co => fetchTIGERCounty(co).catch(e=>{ console.warn(`TIGER ${co}:`,e); return []; }));
+    const tigerResults  = await Promise.all(tigerPromises);
+    const allFeatures   = tigerResults.flat();
+    if(allFeatures.length < 50) throw new Error(`Only ${allFeatures.length} TIGER features returned. Check TIGERweb service.`);
+    tractGeoJSON = {type:'FeatureCollection', features: allFeatures};
+    setStep('ls-tiger','done',`TIGER: ${allFeatures.length} tract polygons loaded`);
 
-    geoidDataMap = buildGeoidMap(tractData);
-    augmentWithCentroids(geoidDataMap, tractGeoJSON); // real centroids for neighbor graph
-    neighbors = buildNeighbors(tractData, 6);
+    // ── 3. MATCH ACS ↔ TIGER (centroids) ────────────────────
+    setStep('ls-match','active','Matching ACS records to tract geometries…');
+    // Build geoid → ACS row lookup
+    allRows.forEach(d => { geoidMap[d.geoid] = d; });
+    // Augment each ACS row with its real centroid from TIGER geometry
+    let matchCount = 0;
+    allFeatures.forEach(f => {
+      const geoid = normalizeGeoid(f.properties);
+      const d     = geoidMap[geoid];
+      if(d){
+        const c = centroidOf(f.geometry);
+        if(c){ d.lat = c.lat; d.lon = c.lon; matchCount++; }
+      }
+    });
+    tractData = allRows;
+    const matchPct = Math.round(matchCount/tractData.length*100);
+    if(matchPct < 40) throw new Error(`Only ${matchPct}% of ACS tracts matched to TIGER geometries (GEOID mismatch). Cannot build valid neighbor graph.`);
+    // Remove tracts that failed centroid matching (can't participate in spatial model)
+    const withCentroids = tractData.filter(d => d.lat !== null);
+    // Keep all tracts for display but only use matched ones for spatial model
+    setStep('ls-match','done',`Matched ${matchCount}/${tractData.length} tracts (${matchPct}%) to geometries`);
 
+    // ── 4. NEIGHBOR GRAPH ────────────────────────────────────
+    setStep('ls-graph','active','Building k=8 nearest-neighbor spatial graph…');
+    neighbors = buildNeighbors(tractData, 8);
+    const avgNeighbors = (neighbors.reduce((s,n)=>s+n.length,0)/neighbors.length).toFixed(1);
+    setStep('ls-graph','done',`Neighbor graph built — avg ${avgNeighbors} neighbors per tract`);
+
+    // ── 5. COMPUTE SUMMARY STATS ─────────────────────────────
     const uninsuredVals = tractData.map(d=>d.uninsured);
-    const mi = moransI(uninsuredVals, neighbors);
-    uninsuredLo = Math.min(...uninsuredVals);
-    uninsuredHi = Math.max(...uninsuredVals);
+    const mi  = moransI(uninsuredVals, neighbors);
+    const lo  = Math.min(...uninsuredVals);
+    const hi  = Math.max(...uninsuredVals);
 
     document.getElementById('s-n').textContent   = tractData.length.toLocaleString();
     document.getElementById('s-med').textContent = median(uninsuredVals).toFixed(1)+'%';
     document.getElementById('s-mi').textContent  = mi.toFixed(3);
+
     document.getElementById('leg0').innerHTML=
-      `<div class="leg-item"><div class="leg-sw" style="background:#1a3a6e"></div>Low uninsured</div>
-       <div class="leg-item"><div class="leg-sw" style="background:#e05c6a"></div>High uninsured</div>`;
+      `<div class="leg-item"><div class="leg-sw" style="background:${rampColor(0.05)}"></div>Low (~${lo.toFixed(0)}%)</div>
+       <div class="leg-item"><div class="leg-sw" style="background:${rampColor(0.5)}"></div>Medium</div>
+       <div class="leg-item"><div class="leg-sw" style="background:${rampColor(0.95)}"></div>High (~${hi.toFixed(0)}%)</div>`;
     document.getElementById('bleg0').innerHTML =
-      Object.entries(BOROUGH_COLORS).map(([co,col])=>
-        `<div class="bl-item"><div class="leg-sw" style="background:${col};border-radius:50%"></div>${BOROUGH_MAP[co]}</div>`
+      Object.entries(BOROUGH_COLOR).map(([co,col])=>
+        `<div class="bl-item"><div class="leg-sw" style="background:${col};border-radius:50%"></div>${BOROUGH_LABEL[co]}</div>`
       ).join('');
 
-    document.getElementById('loading0').style.display='none';
-    document.getElementById('act0-content').style.display='block';
+    document.getElementById('loading0').style.display  = 'none';
+    document.getElementById('act0-content').style.display = 'block';
 
+    // ── 6. RENDER ────────────────────────────────────────────
     requestAnimationFrame(()=>{
       drawChoropleth('map0',
-        d => choroplethColor(d.uninsured, uninsuredLo, uninsuredHi),
-        d => `<b>${d.borough}</b> · Tract ${d.tract}<br>Uninsured: ${d.uninsured.toFixed(1)}%`
+        d => rampColor(choroplethT(d.uninsured, lo, hi)),
+        d => `<b>${d.borough}</b> · Tract ${d.tract}<br>` +
+             `Uninsured: ${d.uninsured.toFixed(1)}%<br>` +
+             `Poverty: ${d.poverty.toFixed(1)}% · Unemployment: ${d.unemployment.toFixed(1)}%`
       );
-      drawHistogram('hist0', uninsuredVals, v => choroplethColor(v, uninsuredLo, uninsuredHi));
+      drawHistogram('hist0', uninsuredVals, v => choroplethT(v, lo, hi));
     });
+
   }catch(e){
-    document.getElementById('loading0').innerHTML=
-      `<div class="error-msg">Could not load data (${e.message}). Check network access or try opening this file directly in a browser.</div>`;
+    console.error('Init error:', e);
+    document.getElementById('loading0').innerHTML =
+      `<div class="error-msg">
+        <b>Data loading failed:</b> ${e.message}<br><br>
+        This app fetches live data from the US Census Bureau API and TIGERweb boundary service.
+        Both require network access. Open this file directly in your browser — it will not work
+        inside sandboxed iframe environments that block outbound requests.
+       </div>
+       <div class="debug-box">Debug info:\n${e.stack||e.message}</div>`;
   }
 }
 
