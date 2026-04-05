@@ -7,6 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
   :root {
     --bg:       #0e1117;
@@ -313,6 +315,26 @@
   #interpret2 { font-size: 13px; line-height: 1.8; color: var(--muted); padding-top: 4px; }
   #interpret2 b { color: var(--text); font-weight: 500; }
 
+  /* ── Leaflet map containers ── */
+  .leaflet-map { width: 100%; height: 280px; border-radius: 8px; overflow: hidden; }
+  .leaflet-container { background: #0e1117 !important; font-family: var(--mono) !important; }
+  .leaflet-control-attribution {
+    background: rgba(14,17,23,0.8) !important;
+    color: var(--muted) !important;
+    font-size: 9px !important;
+  }
+  .leaflet-control-attribution a { color: var(--muted) !important; }
+  .leaflet-tooltip.sc-tooltip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 6px 10px;
+    border-radius: 4px;
+    box-shadow: none;
+  }
+
   /* ── Mobile ── */
   @media (max-width: 640px) {
     .two-col    { grid-template-columns: 1fr; }
@@ -321,6 +343,7 @@
     .act-tab    { border-right: none; border-bottom: 1px solid var(--border); }
     .act-tab:last-child { border-bottom: none; }
     header span { display: none; }
+    .leaflet-map { height: 220px; }
   }
 </style>
 </head>
@@ -357,7 +380,7 @@
       <div class="two-col">
         <div class="card">
           <div class="card-title">Uninsured rate by tract</div>
-          <div style="position:relative;width:100%;height:300px"><canvas id="map0"></canvas></div>
+          <div id="map0" class="leaflet-map"></div>
           <div class="legend" id="leg0"></div>
           <div class="borough-legend" id="bleg0"></div>
         </div>
@@ -396,7 +419,7 @@
       </div>
       <div class="card">
         <div class="card-title">Residuals mapped — do they cluster?</div>
-        <div style="position:relative;width:100%;height:260px"><canvas id="map1"></canvas></div>
+        <div id="map1" class="leaflet-map"></div>
         <div class="legend" id="leg1"></div>
       </div>
     </div>
@@ -441,7 +464,7 @@
     <div class="two-col" style="margin-top:18px">
       <div class="card">
         <div class="card-title">Structured spatial random effect (BYM2)</div>
-        <div style="position:relative;width:100%;height:260px"><canvas id="map2"></canvas></div>
+        <div id="map2" class="leaflet-map"></div>
         <div class="legend" id="leg2"></div>
         <p style="font-size:11px;color:var(--muted);margin-top:8px;font-family:var(--mono);line-height:1.65">This surface captures what the model learned about neighborhood geography — independent of the predictor. High values = tracts that are systematically higher than their predictor alone would predict.</p>
       </div>
@@ -458,13 +481,20 @@
 </div><!-- /app -->
 
 <script>
-let tractData = null;
-let currentAct = 0;
+let tractData   = null;
+let currentAct  = 0;
+let uninsuredLo = 0, uninsuredHi = 100;
 
 const BOROUGH_MAP    = {'005':'Bronx','047':'Brooklyn','061':'Manhattan','081':'Queens','085':'Staten Island'};
 const BOROUGH_COLORS = {'005':'#e05c6a','047':'#f0a04b','061':'#4f8ef7','081':'#38c9a0','085':'#a78bfa'};
 
-// ── Data loading ────────────────────────────────────────────────────────────
+// ── Leaflet state ─────────────────────────────────────────────────────────────
+const leafletMaps      = {};   // mapId → L.Map
+const choroplethLayers = {};   // mapId → L.GeoJSON
+let   tractGeoJSON     = null; // combined NYC census tracts FeatureCollection
+let   geoidDataMap     = {};   // "36005000100" → tractData row (augmented with _resid, _spatial)
+
+// ── Census ACS data ───────────────────────────────────────────────────────────
 
 async function loadData(){
   const counties = ['005','047','061','081','085'];
@@ -479,7 +509,7 @@ async function loadData(){
       if(!r.ok) throw new Error(`HTTP ${r.status}`);
       const d = await r.json();
       rows = rows.concat(d.slice(1));
-    }catch(e){ console.warn(`County ${co}:`, e.message); }
+    }catch(e){ console.warn(`ACS county ${co}:`, e.message); }
   }
   return rows;
 }
@@ -494,21 +524,54 @@ function parseRows(rows){
     return {uninsured,poverty,unemployment,county,tract,
       borough: BOROUGH_MAP[county]||county,
       id: `${county}_${tract}`,
-      lat: tractLat(county,tract),
-      lon: tractLon(county,tract)
+      lat: null, lon: null  // filled by augmentWithCentroids()
     };
   }).filter(Boolean);
 }
 
-function tractLat(county,tract){
-  const t = parseInt(tract)/100;
-  const base = {'005':40.845,'047':40.645,'061':40.775,'081':40.710,'085':40.579};
-  return (base[county]||40.7) + Math.sin(t*0.031+parseInt(county)*0.7)*0.08 + Math.cos(t*0.017)*0.05;
+// ── Census TIGER tract boundaries ─────────────────────────────────────────────
+
+async function loadCountyGeoJSON(county){
+  const co  = parseInt(county);
+  const url = 'https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Tracts_Blocks/MapServer/0/query'
+    + `?where=STATE%3D36+AND+COUNTY%3D${co}`
+    + '&outFields=GEOID%2CTRACT%2CCOUNTY%2CSTATE'
+    + '&returnGeometry=true&f=geojson&resultRecordCount=3000';
+  const r = await fetch(url);
+  if(!r.ok) throw new Error(`TIGER HTTP ${r.status} county=${county}`);
+  return r.json();
 }
-function tractLon(county,tract){
-  const t = parseInt(tract)/100;
-  const base = {'005':-73.866,'047':-73.944,'061':-73.971,'081':-73.817,'085':-74.151};
-  return (base[county]||-73.9) + Math.sin(t*0.023+parseInt(county)*0.5)*0.06 + Math.cos(t*0.041)*0.04;
+
+async function loadAllGeoJSON(){
+  const counties = ['005','047','061','081','085'];
+  const results  = await Promise.all(counties.map(loadCountyGeoJSON));
+  return {type:'FeatureCollection', features: results.flatMap(fc => fc.features || [])};
+}
+
+// ── Geometry helpers ──────────────────────────────────────────────────────────
+
+function buildGeoidMap(data){
+  const m = {};
+  data.forEach(d => { m['36' + d.county + d.tract] = d; });
+  return m;
+}
+
+function computeCentroid(geometry){
+  if(!geometry) return [40.72, -73.95];
+  let ring;
+  if(geometry.type === 'Polygon')           ring = geometry.coordinates[0];
+  else if(geometry.type === 'MultiPolygon') ring = geometry.coordinates[0][0];
+  else return [40.72, -73.95];
+  const lon = ring.reduce((s,c) => s + c[0], 0) / ring.length;
+  const lat = ring.reduce((s,c) => s + c[1], 0) / ring.length;
+  return [lat, lon];
+}
+
+function augmentWithCentroids(geoidMap, geojson){
+  (geojson.features || []).forEach(f => {
+    const d = geoidMap[f.properties.GEOID];
+    if(d){ const [lat,lon] = computeCentroid(f.geometry); d.lat = lat; d.lon = lon; }
+  });
 }
 
 // ── Statistics ──────────────────────────────────────────────────────────────
@@ -530,8 +593,9 @@ function buildNeighbors(data, k=6){
     const dists = [];
     for(let j=0;j<n;j++){
       if(i===j) continue;
-      const dlat=data[i].lat-data[j].lat, dlon=data[i].lon-data[j].lon;
-      dists.push({j, d:dlat*dlat+dlon*dlon});
+      const dlat = (data[i].lat || 40.72) - (data[j].lat || 40.72);
+      const dlon = (data[i].lon ||-73.95) - (data[j].lon ||-73.95);
+      dists.push({j, d: dlat*dlat + dlon*dlon});
     }
     dists.sort((a,b)=>a.d-b.d);
     nbrs[i] = dists.slice(0,k).map(x=>x.j);
@@ -607,34 +671,55 @@ function residColor(v,lo,hi){
   return bym2Color(0.5-0.5*Math.min(1,-v/Math.max(-lo,0.001)));
 }
 
-// ── Canvas drawing ──────────────────────────────────────────────────────────
+// ── Leaflet choropleth ────────────────────────────────────────────────────────
+
+const TILE_URL  = 'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png';
+const TILE_ATTR = '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>';
+const NYC_BOUNDS = [[40.495,-74.26],[40.918,-73.70]];
+
+function getLeafletMap(mapId){
+  if(leafletMaps[mapId]){ leafletMaps[mapId].invalidateSize(); return leafletMaps[mapId]; }
+  const el = document.getElementById(mapId);
+  const m  = L.map(el, {
+    zoomControl: false, attributionControl: true,
+    scrollWheelZoom: false, doubleClickZoom: false, dragging: true
+  });
+  L.tileLayer(TILE_URL, {attribution: TILE_ATTR, maxZoom: 18}).addTo(m);
+  m.attributionControl.setPrefix('');
+  m.fitBounds(NYC_BOUNDS);
+  leafletMaps[mapId] = m;
+  return m;
+}
+
+function drawChoropleth(mapId, colorFn, tooltipFn){
+  if(!tractGeoJSON) return;
+  const m = getLeafletMap(mapId);
+  if(choroplethLayers[mapId]){ m.removeLayer(choroplethLayers[mapId]); }
+  const layer = L.geoJSON(tractGeoJSON, {
+    style: f => {
+      const d = geoidDataMap[f.properties.GEOID];
+      return {
+        fillColor:   d ? colorFn(d) : '#1a1e2e',
+        fillOpacity: d ? 0.82 : 0,
+        color:    '#0e1117',
+        weight:    0.4,
+        opacity:   0.7
+      };
+    },
+    onEachFeature: (f, lyr) => {
+      const d = geoidDataMap[f.properties.GEOID];
+      if(d && tooltipFn) lyr.bindTooltip(tooltipFn(d), {sticky: true, className: 'sc-tooltip'});
+    }
+  }).addTo(m);
+  choroplethLayers[mapId] = layer;
+  setTimeout(() => { if(leafletMaps[mapId]) leafletMaps[mapId].invalidateSize(); }, 200);
+}
+
+// ── Canvas drawing (scatter + histogram) ──────────────────────────────────────
 
 const AXIS_COL = 'rgba(42,51,71,1)';
 const TEXT_COL = '#7a8aaa';
 const FONT     = "10px 'IBM Plex Mono'";
-
-function drawDotMap(canvasId, data, colorFn){
-  const c = document.getElementById(canvasId);
-  if(!c) return;
-  const W=c.parentElement.clientWidth||300, H=260;
-  c.width=W; c.height=H;
-  const ctx=c.getContext('2d');
-  ctx.fillStyle='#0e1117'; ctx.fillRect(0,0,W,H);
-
-  const lats=data.map(d=>d.lat), lons=data.map(d=>d.lon);
-  const latMin=Math.min(...lats),latMax=Math.max(...lats);
-  const lonMin=Math.min(...lons),lonMax=Math.max(...lons);
-  const pad=12;
-  const sx=v=>(v-lonMin)/(lonMax-lonMin+.001)*(W-pad*2)+pad;
-  const sy=v=>H-pad-(v-latMin)/(latMax-latMin+.001)*(H-pad*2);
-  const r=Math.max(2,Math.min(4,Math.round(W/80)));
-  data.forEach(d=>{
-    ctx.beginPath();
-    ctx.arc(sx(d.lon),sy(d.lat),r,0,Math.PI*2);
-    ctx.fillStyle=colorFn(d);
-    ctx.fill();
-  });
-}
 
 function drawScatter(canvasId, x, y, slope, intercept, colors){
   const c=document.getElementById(canvasId);
@@ -720,27 +805,34 @@ function drawHistogram(canvasId, vals, colorFn){
 let neighbors = null;
 
 function renderAct1(){
-  if(!tractData) return;
+  if(!tractData || !tractGeoJSON) return;
   const pred = document.getElementById('pred-select').value;
   const x = tractData.map(d=>d[pred]);
   const y = tractData.map(d=>d.uninsured);
   const {slope,intercept,resid,r2} = olsRegression(x,y);
   const mi = moransI(resid, neighbors);
-  document.getElementById('s-coef').textContent = slope.toFixed(3);
-  document.getElementById('s-r2').textContent   = r2.toFixed(3);
-  document.getElementById('s-resid-mi').textContent = mi.toFixed(3);
+  document.getElementById('s-coef').textContent        = slope.toFixed(3);
+  document.getElementById('s-r2').textContent          = r2.toFixed(3);
+  document.getElementById('s-resid-mi').textContent    = mi.toFixed(3);
   const bColors = tractData.map(d=>BOROUGH_COLORS[d.county]||'#7a8aaa');
-  drawScatter('scatter1',x,y,slope,intercept,bColors);
-  const residMin=Math.min(...resid), residMax=Math.max(...resid);
-  const dataWithResid = tractData.map((d,i)=>({...d,_val:resid[i]}));
-  drawDotMap('map1', dataWithResid, d=>residColor(d._val,residMin,residMax));
+  drawScatter('scatter1', x, y, slope, intercept, bColors);
+  const residMin = Math.min(...resid), residMax = Math.max(...resid);
+  // Store residuals in the shared geoidDataMap for choropleth coloring
+  tractData.forEach((d,i) => {
+    const gd = geoidDataMap['36'+d.county+d.tract];
+    if(gd) gd._resid = resid[i];
+  });
+  drawChoropleth('map1',
+    d => residColor(d._resid ?? 0, residMin, residMax),
+    d => `<b>${d.borough}</b> · Tract ${d.tract}<br>Residual: ${(d._resid ?? 0).toFixed(2)}`
+  );
   document.getElementById('leg1').innerHTML=
     `<div class="leg-item"><div class="leg-sw" style="background:#1a3a6e"></div>Model overestimates (neg. residual)</div>
      <div class="leg-item"><div class="leg-sw" style="background:#e05c6a"></div>Model underestimates (pos. residual)</div>`;
 }
 
 function renderAct2(){
-  if(!tractData) return;
+  if(!tractData || !tractGeoJSON) return;
   const pred = document.getElementById('pred-select2').value;
   const x = tractData.map(d=>d[pred]);
   const y = tractData.map(d=>d.uninsured);
@@ -757,9 +849,16 @@ function renderAct2(){
   document.getElementById('val-phi').textContent = Math.round(phi*100)+'%';
   document.getElementById('sig-ols').textContent = 'p < 0.001';
   document.getElementById('sig-bym').textContent = bymSlope > 0.05 ? 'p < 0.05' : 'attenuated';
-  const spMin=Math.min(...spatial), spMax=Math.max(...spatial);
-  const dataWithSp = tractData.map((d,i)=>({...d,_val:spatial[i]}));
-  drawDotMap('map2', dataWithSp, d=>bym2Color(Math.max(0,Math.min(1,(d._val-spMin)/(spMax-spMin+.001)))));
+  const spMin = Math.min(...spatial), spMax = Math.max(...spatial);
+  // Store spatial effects in geoidDataMap for choropleth coloring
+  tractData.forEach((d,i) => {
+    const gd = geoidDataMap['36'+d.county+d.tract];
+    if(gd) gd._spatial = spatial[i];
+  });
+  drawChoropleth('map2',
+    d => bym2Color(Math.max(0, Math.min(1, ((d._spatial ?? 0) - spMin) / (spMax - spMin + .001)))),
+    d => `<b>${d.borough}</b> · Tract ${d.tract}<br>Spatial effect: ${(d._spatial ?? 0).toFixed(2)}`
+  );
   document.getElementById('leg2').innerHTML=
     `<div class="leg-item"><div class="leg-sw" style="background:#1a3a6e"></div>Lower spatial effect</div>
      <div class="leg-item"><div class="leg-sw" style="background:#38c9a0"></div>Higher spatial effect</div>`;
@@ -778,24 +877,38 @@ function goAct(n, el){
   document.getElementById('act'+n).classList.add('active');
   el.classList.add('active');
   currentAct=n;
-  // Use two rAF frames: first lets the browser apply display:block and compute layout,
-  // second guarantees clientWidth is populated before drawing canvases.
-  if(n===1) requestAnimationFrame(()=>requestAnimationFrame(renderAct1));
-  if(n===2) requestAnimationFrame(()=>requestAnimationFrame(renderAct2));
+  if(n===1) requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    renderAct1();
+    setTimeout(()=>{ if(leafletMaps['map1']) leafletMaps['map1'].invalidateSize(); }, 300);
+  }));
+  if(n===2) requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    renderAct2();
+    setTimeout(()=>{ if(leafletMaps['map2']) leafletMaps['map2'].invalidateSize(); }, 300);
+  }));
 }
 
 // ── Init ────────────────────────────────────────────────────────────────────
 
 async function init(){
   try{
-    const rows = await loadData();
-    if(!rows||rows.length<10) throw new Error('No data returned');
+    document.getElementById('loading0').textContent = 'Loading 2019 ACS data and NYC census tract boundaries…';
+    // Fetch ACS data and TIGER tract polygons in parallel
+    const [rows, geojson] = await Promise.all([loadData(), loadAllGeoJSON()]);
+    tractGeoJSON = geojson;
+
+    if(!rows || rows.length < 10) throw new Error('No ACS data returned');
     tractData = parseRows(rows);
-    if(tractData.length<50) throw new Error('Too few valid tracts');
+    if(tractData.length < 50) throw new Error('Too few valid tracts');
+
+    geoidDataMap = buildGeoidMap(tractData);
+    augmentWithCentroids(geoidDataMap, tractGeoJSON); // real centroids for neighbor graph
     neighbors = buildNeighbors(tractData, 6);
+
     const uninsuredVals = tractData.map(d=>d.uninsured);
-    const mi = moransI(uninsuredVals,neighbors);
-    const lo=Math.min(...uninsuredVals), hi=Math.max(...uninsuredVals);
+    const mi = moransI(uninsuredVals, neighbors);
+    uninsuredLo = Math.min(...uninsuredVals);
+    uninsuredHi = Math.max(...uninsuredVals);
+
     document.getElementById('s-n').textContent   = tractData.length.toLocaleString();
     document.getElementById('s-med').textContent = median(uninsuredVals).toFixed(1)+'%';
     document.getElementById('s-mi').textContent  = mi.toFixed(3);
@@ -806,18 +919,20 @@ async function init(){
       Object.entries(BOROUGH_COLORS).map(([co,col])=>
         `<div class="bl-item"><div class="leg-sw" style="background:${col};border-radius:50%"></div>${BOROUGH_MAP[co]}</div>`
       ).join('');
-    // Show the content section FIRST so the canvas containers have layout width,
-    // then draw in the next animation frame to guarantee clientWidth > 0.
+
     document.getElementById('loading0').style.display='none';
     document.getElementById('act0-content').style.display='block';
+
     requestAnimationFrame(()=>{
-      drawDotMap('map0', tractData.map(d=>({...d,_val:d.uninsured})),
-        d=>choroplethColor(d._val,lo,hi));
-      drawHistogram('hist0', uninsuredVals, v=>choroplethColor(v,lo,hi));
+      drawChoropleth('map0',
+        d => choroplethColor(d.uninsured, uninsuredLo, uninsuredHi),
+        d => `<b>${d.borough}</b> · Tract ${d.tract}<br>Uninsured: ${d.uninsured.toFixed(1)}%`
+      );
+      drawHistogram('hist0', uninsuredVals, v => choroplethColor(v, uninsuredLo, uninsuredHi));
     });
   }catch(e){
     document.getElementById('loading0').innerHTML=
-      `<div class="error-msg">Could not load Census API data (${e.message}). This may be a network restriction in this environment. The app structure and models are fully functional — data loads correctly when run in a standard browser environment.</div>`;
+      `<div class="error-msg">Could not load data (${e.message}). Check network access or try opening this file directly in a browser.</div>`;
   }
 }
 
