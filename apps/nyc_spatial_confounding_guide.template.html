@@ -33,6 +33,13 @@
   .controls{display:flex;align-items:center;gap:10px;margin-top:14px}
   select{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:7px 9px;border-radius:7px;font-family:var(--mono);font-size:12px}
   .small{font-family:var(--mono);font-size:11px;color:var(--muted)}
+  .act-nav{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .act-nav a{font-family:var(--mono);font-size:11px;color:var(--text);text-decoration:none;border:1px solid var(--border);background:var(--surface);padding:6px 9px;border-radius:7px}
+  .act-nav a:hover{border-color:#3f4d68}
+  .act{margin-top:18px;padding-top:8px}
+  .act-title{font-family:var(--mono);font-size:12px;color:var(--accent2);margin-bottom:8px}
+  .narrative{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 12px;line-height:1.6;color:#d2dcee}
+  .narrative strong{color:var(--text)}
   canvas{width:100%;height:260px;background:#0b0f16;border-radius:8px}
   .error{margin-top:14px;padding:11px;background:#2a1620;border:1px solid #4f2638;border-radius:8px;color:#ffb4c8;font-family:var(--mono);font-size:12px;line-height:1.5}
   .leaflet-container{background:#0b0f16}
@@ -58,6 +65,12 @@
     <span class="small" id="meta"></span>
   </div>
 
+  <div class="act-nav">
+    <a href="#act1">Act 1 · What the map shows</a>
+    <a href="#act2">Act 2 · The naive model</a>
+    <a href="#act3">Act 3 · Spatial adjustment</a>
+  </div>
+
   <div class="metrics">
     <div class="metric"><div class="metric-label">TRACTS</div><div class="metric-value" id="m-n">—</div></div>
     <div class="metric"><div class="metric-label">MEDIAN UNINSURED</div><div class="metric-value" id="m-med">—</div></div>
@@ -66,38 +79,59 @@
     <div class="metric"><div class="metric-label">BYM2-ADJ SLOPE</div><div class="metric-value" id="m-bym">—</div></div>
   </div>
 
-  <div class="row">
-    <div class="card">
-      <h2>Act 1 · Uninsured rate by tract (choropleth)</h2>
-      <div id="map0" class="map"></div>
+  <section id="act1" class="act">
+    <div class="act-title">ACT 1</div>
+    <div class="narrative">
+      NYC uninsured rates are spatially patterned. The choropleth below is built from precomputed tract-level ACS data joined to tract geometries in R.
+      This first view is descriptive: <strong>where</strong> are rates highest and how concentrated is that pattern?
     </div>
-    <div class="card">
-      <h2>Distribution of uninsured rates</h2>
-      <canvas id="hist"></canvas>
+    <div class="row">
+      <div class="card">
+        <h2>Uninsured rate by tract (choropleth)</h2>
+        <div id="map0" class="map"></div>
+      </div>
+      <div class="card">
+        <h2>Distribution of uninsured rates</h2>
+        <canvas id="hist"></canvas>
+      </div>
     </div>
-  </div>
+  </section>
 
-  <div class="row">
-    <div class="card">
-      <h2>Act 2 · OLS residuals mapped</h2>
-      <div id="map1" class="map"></div>
+  <section id="act2" class="act">
+    <div class="act-title">ACT 2</div>
+    <div class="narrative">
+      A naive OLS model may look strong, but tract observations are not independent in space.
+      The residual map checks whether unexplained signal still clusters geographically. If it does, the naive model is biased by spatial confounding.
     </div>
-    <div class="card">
-      <h2>Predictor vs uninsured (OLS)</h2>
-      <canvas id="scatter"></canvas>
+    <div class="row">
+      <div class="card">
+        <h2>OLS residuals mapped</h2>
+        <div id="map1" class="map"></div>
+      </div>
+      <div class="card">
+        <h2>Predictor vs uninsured (OLS)</h2>
+        <canvas id="scatter"></canvas>
+      </div>
     </div>
-  </div>
+  </section>
 
-  <div class="row">
-    <div class="card">
-      <h2>Act 3 · Structured spatial random effect (BYM2 proxy)</h2>
-      <div id="map2" class="map"></div>
+  <section id="act3" class="act">
+    <div class="act-title">ACT 3</div>
+    <div class="narrative">
+      The spatially adjusted model separates predictor effect from place-based structure.
+      The BYM2-proxy surface highlights neighborhood-level burden not explained by the selected predictor alone.
     </div>
-    <div class="card">
-      <h2>Coefficient comparison</h2>
-      <canvas id="coef"></canvas>
+    <div class="row">
+      <div class="card">
+        <h2>Structured spatial random effect (BYM2 proxy)</h2>
+        <div id="map2" class="map"></div>
+      </div>
+      <div class="card">
+        <h2>Coefficient comparison</h2>
+        <canvas id="coef"></canvas>
+      </div>
     </div>
-  </div>
+  </section>
 
   <div id="err" class="error" style="display:none"></div>
 </div>
