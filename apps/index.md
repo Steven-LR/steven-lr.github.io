@@ -25,19 +25,19 @@ title:
     </div>
 
     <div class="project-item">
-      <a class="app-preview" href="{{ '/apps/nyc_spatial_confounding_guide.html' | relative_url }}" aria-label="Open Spatial Confounding in NYC Health Data (preview image links to app)">
+      <a class="app-preview" href="{{ '/apps/nyc_spatial_confounding_guide.html' | relative_url }}" aria-label="Open Spatial Confounding in NYC Health Data (single-file app)">
         <img
           src="{{ '/assets/img/nyc-confounding-preview.png' | relative_url }}"
-          alt="Preview of the NYC Spatial Confounding Guide: dark UI with three-act narrative, census tract maps, and BYM2 coefficient comparison"
+          alt="Preview of the NYC Spatial Confounding app: tract choropleths, model diagnostics, and coefficient comparison"
           width="1400"
           height="850"
           loading="lazy"
           decoding="async"
         />
       </a>
-      <p class="app-preview__caption">Preview — click the image or link below to open the live app. Loads live 2019 ACS data from the Census API.</p>
+      <p class="app-preview__caption">Preview — click below to open the single-file precomputed app.</p>
       <div class="project-item__title"><a href="{{ '/apps/nyc_spatial_confounding_guide.html' | relative_url }}">Spatial Confounding in NYC Health Data</a></div>
-      <p>A three-act interactive guide to spatial confounding using 2019 ACS census-tract data for NYC. Walks through the naive OLS, residual clustering, and BYM2 spatial adjustment — side by side.</p>
+      <p>Single-file app with precomputed ACS + tract geometry joins from R (<code>tidycensus</code> + <code>tigris</code>), rendered with Leaflet choropleths and in-browser diagnostics.</p>
       <p><a href="{{ '/apps/nyc_spatial_confounding_guide.html' | relative_url }}">Open app</a></p>
     </div>
   </div>

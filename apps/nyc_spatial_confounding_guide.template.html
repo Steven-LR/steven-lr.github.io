@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spatial Confounding in NYC Health Data</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  :root{
+    --bg:#0e1117; --surface:#161b25; --card:#1c2333; --border:#2a3347;
+    --text:#e2e8f4; --muted:#7a8aaa; --accent:#4f8ef7; --accent2:#38c9a0;
+    --warn:#f0a04b; --danger:#e05c6a; --mono:'IBM Plex Mono', monospace; --sans:'IBM Plex Sans', sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--sans);background:var(--bg);color:var(--text);padding:18px}
+  .app{max-width:1300px;margin:0 auto}
+  header{display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border);padding:0 0 12px}
+  .logo{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:12px;font-family:var(--mono);font-weight:600;color:#fff}
+  h1{font-size:20px;font-weight:500}
+  header span{font-family:var(--mono);font-size:11px;color:var(--muted)}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px}
+  .card h2{font-size:13px;font-weight:500;font-family:var(--mono);letter-spacing:.01em;color:var(--muted);margin-bottom:10px}
+  .map{height:340px;border-radius:8px;overflow:hidden}
+  .metrics{display:grid;grid-template-columns:repeat(5,minmax(120px,1fr));gap:10px;margin-top:14px}
+  .metric{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px}
+  .metric-label{font-family:var(--mono);font-size:10px;color:var(--muted)}
+  .metric-value{font-family:var(--mono);font-size:16px;margin-top:4px}
+  .controls{display:flex;align-items:center;gap:10px;margin-top:14px}
+  select{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:7px 9px;border-radius:7px;font-family:var(--mono);font-size:12px}
+  .small{font-family:var(--mono);font-size:11px;color:var(--muted)}
+  canvas{width:100%;height:260px;background:#0b0f16;border-radius:8px}
+  .error{margin-top:14px;padding:11px;background:#2a1620;border:1px solid #4f2638;border-radius:8px;color:#ffb4c8;font-family:var(--mono);font-size:12px;line-height:1.5}
+  .leaflet-container{background:#0b0f16}
+  .leaflet-control-attribution{background:rgba(14,17,23,.75)!important;color:var(--muted)!important;font-size:9px!important}
+  .leaflet-control-attribution a{color:var(--muted)!important}
+  @media(max-width:980px){.row{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo">SC</div>
+    <h1>Spatial Confounding · NYC Health Data</h1>
+    <span>single-file precomputed build</span>
+  </header>
+
+  <div class="controls">
+    <label class="small" for="predictor">Predictor</label>
+    <select id="predictor">
+      <option value="poverty">Poverty rate</option>
+      <option value="unemployment">Unemployment rate</option>
+    </select>
+    <span class="small" id="meta"></span>
+  </div>
+
+  <div class="metrics">
+    <div class="metric"><div class="metric-label">TRACTS</div><div class="metric-value" id="m-n">—</div></div>
+    <div class="metric"><div class="metric-label">MEDIAN UNINSURED</div><div class="metric-value" id="m-med">—</div></div>
+    <div class="metric"><div class="metric-label">MORAN'S I (UNINSURED)</div><div class="metric-value" id="m-mi">—</div></div>
+    <div class="metric"><div class="metric-label">OLS SLOPE</div><div class="metric-value" id="m-ols">—</div></div>
+    <div class="metric"><div class="metric-label">BYM2-ADJ SLOPE</div><div class="metric-value" id="m-bym">—</div></div>
+  </div>
+
+  <div class="row">
+    <div class="card">
+      <h2>Act 1 · Uninsured rate by tract (choropleth)</h2>
+      <div id="map0" class="map"></div>
+    </div>
+    <div class="card">
+      <h2>Distribution of uninsured rates</h2>
+      <canvas id="hist"></canvas>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="card">
+      <h2>Act 2 · OLS residuals mapped</h2>
+      <div id="map1" class="map"></div>
+    </div>
+    <div class="card">
+      <h2>Predictor vs uninsured (OLS)</h2>
+      <canvas id="scatter"></canvas>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="card">
+      <h2>Act 3 · Structured spatial random effect (BYM2 proxy)</h2>
+      <div id="map2" class="map"></div>
+    </div>
+    <div class="card">
+      <h2>Coefficient comparison</h2>
+      <canvas id="coef"></canvas>
+    </div>
+  </div>
+
+  <div id="err" class="error" style="display:none"></div>
+</div>
+
+<script id="precomputed-data" type="application/json">__PRECOMPUTED_JSON__</script>
+<script>
+(function(){
+  const errEl = document.getElementById('err');
+  function fail(msg){ errEl.style.display='block'; errEl.textContent = msg; throw new Error(msg); }
+
+  let payload = null;
+  try{
+    payload = JSON.parse(document.getElementById('precomputed-data').textContent);
+  }catch(e){ fail('Embedded dataset missing. Run: Rscript scripts/build_nyc_confounding_singlefile.R'); }
+  if(!payload || !payload.geojson || !payload.geojson.features || payload.geojson.features.length===0){
+    fail('Embedded dataset is empty. Rebuild with the R script.');
+  }
+
+  const features = payload.geojson.features;
+  const summaries = payload.summaries || {};
+  const predictorSel = document.getElementById('predictor');
+  document.getElementById('meta').textContent = `ACS/TIGER ${payload.meta?.year || 'n/a'} · generated ${payload.meta?.generated_at || 'n/a'}`;
+
+  function ramp(t){
+    const stops=[[26,58,110],[47,102,224],[56,201,160],[240,160,75],[224,92,106]];
+    t=Math.max(0,Math.min(1,t)); const seg=t*(stops.length-1); const i=Math.min(Math.floor(seg),stops.length-2); const f=seg-i;
+    const c=[0,1,2].map(k=>Math.round(stops[i][k]+f*(stops[i+1][k]-stops[i][k])));
+    return `rgb(${c[0]},${c[1]},${c[2]})`;
+  }
+  function linColor(v, lo, hi){ return ramp((v-lo)/Math.max(hi-lo,1e-9)); }
+  function divColor(v, lim){ return ramp((v+lim)/(2*Math.max(lim,1e-9))); }
+
+  const maps = {};
+  function getMap(id){
+    if(maps[id]) return maps[id];
+    const m=L.map(id,{zoomControl:false,scrollWheelZoom:false});
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png',{
+      attribution:'&copy; OSM &copy; CARTO'
+    }).addTo(m);
+    maps[id]=m; return m;
+  }
+
+  const geoLayer = {};
+  function drawMap(id, styleFn, tipFn){
+    const m=getMap(id);
+    if(geoLayer[id]) m.removeLayer(geoLayer[id]);
+    geoLayer[id] = L.geoJSON(payload.geojson,{
+      style: f => styleFn(f.properties),
+      onEachFeature: (f,lyr)=> lyr.bindTooltip(tipFn(f.properties),{sticky:true})
+    }).addTo(m);
+    m.fitBounds(geoLayer[id].getBounds(), {padding:[10,10]});
+    setTimeout(()=>m.invalidateSize(),150);
+  }
+
+  function drawHistogram(vals){
+    const c=document.getElementById('hist'), ctx=c.getContext('2d');
+    c.width=c.clientWidth; c.height=c.clientHeight;
+    const W=c.width,H=c.height,p=30,bins=22;
+    const lo=Math.min(...vals), hi=Math.max(...vals), bw=(hi-lo)/bins;
+    const counts=Array.from({length:bins},()=>0);
+    vals.forEach(v=>{const b=Math.min(bins-1,Math.floor((v-lo)/Math.max(bw,1e-9))); counts[b]++;});
+    const maxC=Math.max(...counts);
+    ctx.fillStyle='#0b0f16'; ctx.fillRect(0,0,W,H);
+    const barW=(W-2*p)/bins;
+    counts.forEach((n,i)=>{
+      const h=(n/maxC)*(H-2*p); const x=p+i*barW; const mid=lo+(i+0.5)*bw;
+      ctx.fillStyle=linColor(mid,lo,hi); ctx.fillRect(x+1,H-p-h,barW-2,h);
+    });
+    ctx.strokeStyle='#33435c'; ctx.strokeRect(p,p,W-2*p,H-2*p);
+  }
+
+  function drawScatter(x,y){
+    const c=document.getElementById('scatter'), ctx=c.getContext('2d');
+    c.width=c.clientWidth; c.height=c.clientHeight;
+    const W=c.width,H=c.height,p=34;
+    const xmin=Math.min(...x),xmax=Math.max(...x),ymin=Math.min(...y),ymax=Math.max(...y);
+    const sx=v=>p+(v-xmin)/Math.max(xmax-xmin,1e-9)*(W-2*p);
+    const sy=v=>H-p-(v-ymin)/Math.max(ymax-ymin,1e-9)*(H-2*p);
+    ctx.fillStyle='#0b0f16'; ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle='#33435c'; ctx.strokeRect(p,p,W-2*p,H-2*p);
+    ctx.fillStyle='#7fb3ff88'; x.forEach((v,i)=>{ctx.beginPath();ctx.arc(sx(v),sy(y[i]),2,0,Math.PI*2);ctx.fill();});
+  }
+
+  function drawCoef(ols,bym,phi){
+    const c=document.getElementById('coef'), ctx=c.getContext('2d');
+    c.width=c.clientWidth; c.height=c.clientHeight;
+    const W=c.width,H=c.height,p=36;
+    ctx.fillStyle='#0b0f16'; ctx.fillRect(0,0,W,H);
+    const maxA=Math.max(Math.abs(ols),Math.abs(bym),0.001);
+    const y0=H/2, scale=(H/2-p)/maxA;
+    ctx.strokeStyle='#33435c'; ctx.beginPath();ctx.moveTo(p,y0);ctx.lineTo(W-p,y0);ctx.stroke();
+    function bar(x,val,col){const h=val*scale; ctx.fillStyle=col; ctx.fillRect(x, y0-(h>0?h:0), 80, Math.abs(h));}
+    bar(W*0.28, ols, '#e05c6a'); bar(W*0.58, bym, '#4f8ef7');
+    ctx.fillStyle='#aab7cc'; ctx.font="12px 'IBM Plex Mono'"; ctx.fillText(`phi=${(phi*100).toFixed(1)}%`, p, p);
+    ctx.fillText('OLS', W*0.28, H-p/2); ctx.fillText('BYM2 adj', W*0.58, H-p/2);
+  }
+
+  function update(){
+    const key = predictorSel.value;
+    const pcol = key === 'poverty' ? 'poverty_rate' : 'unemployment_rate';
+    const rcol = key === 'poverty' ? 'resid_poverty' : 'resid_unemployment';
+    const scol = key === 'poverty' ? 'spatial_poverty' : 'spatial_unemployment';
+    const sKey = key === 'poverty' ? 'poverty' : 'unemployment';
+    const s = summaries.predictors?.[sKey] || {};
+
+    const uninsured = features.map(f=>f.properties.uninsured_rate);
+    const predictor = features.map(f=>f.properties[pcol]);
+    const residuals = features.map(f=>f.properties[rcol]);
+    const spatial   = features.map(f=>f.properties[scol]);
+    const loU=Math.min(...uninsured), hiU=Math.max(...uninsured);
+    const limR=Math.max(...residuals.map(v=>Math.abs(v))), limS=Math.max(...spatial.map(v=>Math.abs(v)));
+
+    document.getElementById('m-n').textContent = String(features.length);
+    document.getElementById('m-med').textContent = `${(summaries.uninsured_median || 0).toFixed(1)}%`;
+    document.getElementById('m-mi').textContent = (summaries.uninsured_moran || 0).toFixed(3);
+    document.getElementById('m-ols').textContent = (s.ols_slope || 0).toFixed(3);
+    document.getElementById('m-bym').textContent = (s.bym_slope || 0).toFixed(3);
+
+    drawMap('map0',
+      p=>({fillColor:linColor(p.uninsured_rate,loU,hiU),fillOpacity:.86,color:'#1e2a3c',weight:.5,opacity:.9}),
+      p=>`${p.namelsad}<br>Uninsured: ${p.uninsured_rate.toFixed(1)}%`
+    );
+    drawMap('map1',
+      p=>({fillColor:divColor(p[rcol],limR),fillOpacity:.86,color:'#1e2a3c',weight:.5,opacity:.9}),
+      p=>`${p.namelsad}<br>Residual: ${p[rcol].toFixed(2)}`
+    );
+    drawMap('map2',
+      p=>({fillColor:divColor(p[scol],limS),fillOpacity:.86,color:'#1e2a3c',weight:.5,opacity:.9}),
+      p=>`${p.namelsad}<br>Spatial effect: ${p[scol].toFixed(2)}`
+    );
+    drawHistogram(uninsured);
+    drawScatter(predictor, uninsured);
+    drawCoef(s.ols_slope || 0, s.bym_slope || 0, s.phi || 0);
+  }
+
+  predictorSel.addEventListener('change', update);
+  update();
+  window.addEventListener('resize', ()=>Object.values(maps).forEach(m=>m.invalidateSize()));
+})();
+</script>
+</body>
+</html>
