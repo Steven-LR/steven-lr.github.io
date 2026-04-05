@@ -489,7 +489,7 @@ function parseRows(rows){
     const uninsured    = parseFloat(r[1]);
     const poverty      = parseFloat(r[2]);
     const unemployment = parseFloat(r[3]);
-    const county = r[6], tract = r[7];
+    const county = r[5], tract = r[6];
     if([uninsured,poverty,unemployment].some(v=>isNaN(v)||v<0||v>100)) return null;
     return {uninsured,poverty,unemployment,county,tract,
       borough: BOROUGH_MAP[county]||county,
