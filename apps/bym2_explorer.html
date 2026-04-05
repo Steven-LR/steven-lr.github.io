@@ -675,6 +675,57 @@
   .tries-capped  { background: rgba(240,160,75,0.15);  color: var(--warn); }
   .tries-single  { background: rgba(122,138,170,0.12); color: var(--muted); }
 
+  /* ── View switcher tabs (Choropleth / LISA / Histogram) ── */
+  .view-tabs {
+    display: flex;
+    gap: 2px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0;
+    width: 100%;
+    max-width: 480px;
+    margin-bottom: 14px;
+    flex-shrink: 0;
+  }
+
+  .view-tab {
+    padding: 6px 14px;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: color 0.15s, border-color 0.15s;
+    letter-spacing: 0.04em;
+  }
+  .view-tab:hover { color: var(--text); }
+  .view-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* LISA cluster legend */
+  .legend-lisa {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+    align-items: center;
+  }
+  .lisa-key {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+  }
+  .lisa-swatch {
+    width: 12px; height: 12px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
   /* ── Mobile toggle button (controls drawer) ── */
   .mobile-ctrl-toggle {
     display: none;
@@ -1101,12 +1152,35 @@ p-value  =  2 · (1 − Φ(|Z|))</div>
   <!-- ════ MAIN ════ -->
   <main class="main">
     <div class="map-area">
+      <!-- View switcher -->
+      <div class="view-tabs" role="tablist" aria-label="Visualization mode">
+        <button class="view-tab active" data-view="choropleth" role="tab" aria-selected="true">Choropleth</button>
+        <button class="view-tab" data-view="lisa" role="tab" aria-selected="false">LISA Clusters</button>
+        <button class="view-tab" data-view="histogram" role="tab" aria-selected="false">Histogram</button>
+      </div>
+
       <canvas id="grid-canvas" width="480" height="480"></canvas>
       <div class="map-label" id="map-label">Simulated SMR  ·  n=10×10 grid</div>
-      <div class="legend">
+
+      <!-- Choropleth legend -->
+      <div class="legend" id="legend-choropleth">
         <span class="legend-label">Low</span>
         <div class="legend-bar"></div>
         <span class="legend-label">High</span>
+      </div>
+
+      <!-- LISA legend -->
+      <div class="legend-lisa" id="legend-lisa" style="display:none;">
+        <span class="lisa-key"><span class="lisa-swatch" style="background:#e05c6a;"></span>HH – high cluster</span>
+        <span class="lisa-key"><span class="lisa-swatch" style="background:#4f8ef7;"></span>LL – low cluster</span>
+        <span class="lisa-key"><span class="lisa-swatch" style="background:#f0a04b;"></span>HL – outlier</span>
+        <span class="lisa-key"><span class="lisa-swatch" style="background:#38c9a0;"></span>LH – outlier</span>
+        <span class="lisa-key"><span class="lisa-swatch" style="background:#2a3347;"></span>NS</span>
+      </div>
+
+      <!-- Histogram legend / summary -->
+      <div id="legend-histogram" style="display:none; margin-top:10px;">
+        <span class="map-label" id="hist-summary"></span>
       </div>
     </div>
     <div class="scatter-area">
@@ -1543,11 +1617,222 @@ function drawMoranScatter(zVals, W_flat, N, moranI) {
   ctx.restore();
 }
 
+// ── LISA (Local Indicators of Spatial Association) ─────────────────────────
+
+function computeLISA(smrVals, W_flat, N, N_perms = 199) {
+  const vals = Array.from(smrVals);
+  const mean = vals.reduce((a, b) => a + b, 0) / N;
+  const sd   = Math.sqrt(vals.reduce((a, v) => a + (v - mean) ** 2, 0) / N) || 1;
+  const z    = vals.map(v => (v - mean) / sd);
+
+  // Row-standardised weights and neighbor lists (speeds up permutation loop)
+  const rowsums  = new Float64Array(N);
+  const nbrs     = [];
+  const nbr_w    = [];
+  for (let i = 0; i < N; i++) {
+    nbrs[i]  = [];
+    nbr_w[i] = [];
+    for (let j = 0; j < N; j++) {
+      const w = W_flat[i * N + j];
+      if (w > 0) { rowsums[i] += w; nbrs[i].push(j); nbr_w[i].push(w); }
+    }
+  }
+
+  // Observed spatial lag (row-standardised) and local Moran
+  const lag  = new Float64Array(N);
+  const Ii   = new Float64Array(N);
+  for (let i = 0; i < N; i++) {
+    for (let k = 0; k < nbrs[i].length; k++)
+      lag[i] += (nbr_w[i][k] / rowsums[i]) * z[nbrs[i][k]];
+    Ii[i] = z[i] * lag[i];
+  }
+  const absIi = Ii.map(Math.abs);
+
+  // Pseudo-significance via permutation (global permutation approximation)
+  const extreme = new Uint32Array(N);
+  const permZ   = [...z];
+  for (let p = 0; p < N_perms; p++) {
+    for (let k = N - 1; k > 0; k--) {
+      const j = Math.floor(Math.random() * (k + 1));
+      const tmp = permZ[k]; permZ[k] = permZ[j]; permZ[j] = tmp;
+    }
+    for (let i = 0; i < N; i++) {
+      let pl = 0;
+      for (let k = 0; k < nbrs[i].length; k++)
+        pl += (nbr_w[i][k] / rowsums[i]) * permZ[nbrs[i][k]];
+      if (Math.abs(z[i] * pl) >= absIi[i]) extreme[i]++;
+    }
+  }
+
+  // Quadrant classification (only for significant cells)
+  const pseudo_p = new Float64Array(N);
+  const clusters = new Array(N);
+  for (let i = 0; i < N; i++) {
+    pseudo_p[i] = (extreme[i] + 1) / (N_perms + 1);
+    if (pseudo_p[i] >= 0.05) { clusters[i] = 'ns'; continue; }
+    if (z[i] > 0 && lag[i] > 0)      clusters[i] = 'HH';
+    else if (z[i] < 0 && lag[i] < 0) clusters[i] = 'LL';
+    else if (z[i] > 0 && lag[i] < 0) clusters[i] = 'HL';
+    else                               clusters[i] = 'LH';
+  }
+  return { Ii, pseudo_p, clusters, z, lag };
+}
+
+// ── Draw LISA ──────────────────────────────────────────────────────────────
+
+const LISA_COLORS = { HH: '#e05c6a', LL: '#4f8ef7', HL: '#f0a04b', LH: '#38c9a0', ns: '#2a3347' };
+
+function drawLISA(smrVals, W_flat, N, n) {
+  const lisa   = computeLISA(smrVals, W_flat, N);
+  const canvas = document.getElementById('grid-canvas');
+  const ctx    = canvas.getContext('2d');
+  const CW     = canvas.width, CH = canvas.height;
+  ctx.clearRect(0, 0, CW, CH);
+
+  const cw = CW / n, ch = CH / n;
+  for (let r = 0; r < n; r++) {
+    for (let c = 0; c < n; c++) {
+      const idx = r * n + c;
+      ctx.fillStyle = LISA_COLORS[lisa.clusters[idx]] || LISA_COLORS.ns;
+      ctx.fillRect(c * cw + 0.5, r * ch + 0.5, cw - 1, ch - 1);
+      if (n <= 12) {
+        ctx.fillStyle = 'rgba(255,255,255,0.6)';
+        ctx.font = `${Math.max(8, Math.round(cw * 0.2))}px 'IBM Plex Mono'`;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(lisa.clusters[idx], c * cw + cw / 2, r * ch + ch / 2);
+      }
+    }
+  }
+  state.lisaResult = lisa;
+
+  // Count cluster types for summary label
+  const counts = { HH: 0, LL: 0, HL: 0, LH: 0, ns: 0 };
+  for (const cl of lisa.clusters) counts[cl]++;
+  const sigN = N - counts.ns;
+  document.getElementById('map-label').textContent =
+    `LISA · n=${n}×${n}  ·  ${sigN} sig. cells (p<0.05, 199 perms)  ·  HH:${counts.HH} LL:${counts.LL} HL:${counts.HL} LH:${counts.LH}`;
+}
+
+// ── Draw histogram ─────────────────────────────────────────────────────────
+
+function drawHistogram(smrVals, N) {
+  const canvas = document.getElementById('grid-canvas');
+  const ctx    = canvas.getContext('2d');
+  const CW     = canvas.width, CH = canvas.height;
+  ctx.clearRect(0, 0, CW, CH);
+
+  const vals = Array.from(smrVals);
+  const min  = Math.min(...vals);
+  const max  = Math.max(...vals);
+  const mean = vals.reduce((a, b) => a + b, 0) / N;
+  const sd   = Math.sqrt(vals.reduce((a, v) => a + (v - mean) ** 2, 0) / N);
+  const med  = [...vals].sort((a, b) => a - b)[Math.floor(N / 2)];
+
+  const nBins   = Math.max(10, Math.min(30, Math.ceil(1 + 3.322 * Math.log10(N))));
+  const binW    = (max - min) / nBins || 1;
+  const counts  = new Array(nBins).fill(0);
+  for (const v of vals) counts[Math.min(Math.floor((v - min) / binW), nBins - 1)]++;
+  const maxCt   = Math.max(...counts);
+
+  const pad = { l: 50, r: 18, t: 24, b: 48 };
+  const pw  = CW - pad.l - pad.r;
+  const ph  = CH - pad.t - pad.b;
+  const bw  = pw / nBins;
+
+  // Gridlines
+  ctx.strokeStyle = '#2a3347'; ctx.lineWidth = 0.5;
+  for (let i = 0; i <= 4; i++) {
+    const y = pad.t + ph * i / 4;
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l + pw, y); ctx.stroke();
+    const label = Math.round(maxCt * (1 - i / 4));
+    ctx.fillStyle = '#7a8aaa'; ctx.font = "9px 'IBM Plex Mono'";
+    ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+    ctx.fillText(label, pad.l - 5, y);
+  }
+
+  // Bars
+  for (let b = 0; b < nBins; b++) {
+    const bh  = (counts[b] / maxCt) * ph;
+    const x   = pad.l + b * bw;
+    const y   = pad.t + ph - bh;
+    const mid = min + (b + 0.5) * binW;
+    ctx.fillStyle = valToColor(mid, min, max);
+    ctx.fillRect(x + 0.5, y, bw - 1, bh);
+  }
+
+  // Axes
+  ctx.strokeStyle = '#3a4a60'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(pad.l, pad.t); ctx.lineTo(pad.l, pad.t + ph + 4); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(pad.l - 4, pad.t + ph); ctx.lineTo(pad.l + pw, pad.t + ph); ctx.stroke();
+
+  // Median line
+  const medX = pad.l + ((med - min) / (max - min || 1)) * pw;
+  ctx.strokeStyle = '#f0a04b'; ctx.lineWidth = 1.5; ctx.setLineDash([4, 3]);
+  ctx.beginPath(); ctx.moveTo(medX, pad.t); ctx.lineTo(medX, pad.t + ph); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // x-axis tick labels
+  ctx.fillStyle = '#7a8aaa'; ctx.font = "9px 'IBM Plex Mono'"; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  const xTicks = 5;
+  for (let i = 0; i <= xTicks; i++) {
+    const v = min + i * (max - min) / xTicks;
+    const x = pad.l + i * pw / xTicks;
+    ctx.fillText(v.toFixed(2), x, pad.t + ph + 6);
+  }
+
+  // Axis labels
+  ctx.textAlign = 'center'; ctx.fillStyle = '#7a8aaa'; ctx.font = "10px 'IBM Plex Mono'";
+  ctx.fillText('SMR', pad.l + pw / 2, CW - 10);
+  ctx.save(); ctx.translate(14, pad.t + ph / 2); ctx.rotate(-Math.PI / 2);
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('Count', 0, 0); ctx.restore();
+
+  // Summary stats overlay
+  ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.font = "10px 'IBM Plex Mono'";
+  ctx.fillStyle = '#7a8aaa';
+  ctx.fillText(`μ=${mean.toFixed(3)}  σ=${sd.toFixed(3)}  med=${med.toFixed(3)}`, pad.l + 6, pad.t + 6);
+
+  document.getElementById('map-label').textContent =
+    `Histogram of SMR  ·  n=${Math.round(Math.sqrt(N))}×${Math.round(Math.sqrt(N))}  ·  ${nBins} bins  ·  orange dashed = median`;
+}
+
+// ── View manager ───────────────────────────────────────────────────────────
+
+function setLegendVisibility(view) {
+  document.getElementById('legend-choropleth').style.display = view === 'choropleth' ? '' : 'none';
+  document.getElementById('legend-lisa').style.display       = view === 'lisa'       ? '' : 'none';
+  document.getElementById('legend-histogram').style.display  = view === 'histogram'  ? '' : 'none';
+}
+
+function redrawView() {
+  const { smrVals, W_flat, N, n } = state;
+  if (!smrVals) return;
+  setLegendVisibility(state.viewMode);
+  if (state.viewMode === 'choropleth') drawGrid(state.simVals, n, smrVals);
+  else if (state.viewMode === 'lisa')  drawLISA(smrVals, W_flat, N, n);
+  else                                 drawHistogram(smrVals, N);
+}
+
+// Tab click handler
+document.querySelectorAll('.view-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.view-tab').forEach(b => {
+      b.classList.remove('active');
+      b.setAttribute('aria-selected', 'false');
+    });
+    btn.classList.add('active');
+    btn.setAttribute('aria-selected', 'true');
+    state.viewMode = btn.dataset.view;
+    redrawView();
+  });
+});
+
 // ── State ──────────────────────────────────────────────────────────────────
 
 let state = {
   n: 10, phi: 0.70, sigma: 0.80, beta0: 0, E: 100, wmat: 'queen',
-  W_flat: null, N: null, prec: null, simVals: null, smrVals: null, moranResult: null
+  viewMode: 'choropleth',
+  W_flat: null, N: null, prec: null, simVals: null, smrVals: null, moranResult: null, lisaResult: null
 };
 
 // ── Slider bindings ────────────────────────────────────────────────────────
@@ -1652,7 +1937,7 @@ function runSimulation(huntMode = false) {
   state.moranResult = mr;
 
   // ── Draw ───────────────────────────────────────────────────────────────────
-  drawGrid(b, n, smr);
+  redrawView();
   drawMoranScatter(new Float64Array(mr.z_vals), W, N, mr.I);
 
   // ── Update stats ───────────────────────────────────────────────────────────
