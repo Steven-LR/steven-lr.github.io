@@ -42,9 +42,6 @@ permalink: /cv/
 
 ## Research and Work Experience
 
-<div class="card">
-  <p>Primary training and employment are at <strong>New York University</strong> (doctoral research). External consulting and short term opportunities are listed separately below.</p>
-</div>
 
 ### New York University
 
