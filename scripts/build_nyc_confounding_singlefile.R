@@ -124,7 +124,7 @@ fit_bundle <- function(pred_col) {
     }
     u <- next_u
   }
-  phi <- pmin(0.95, pmax(0.2, var(u, na.rm = TRUE) / var(resid, na.rm = TRUE)))
+  phi <- pmin(0.99, pmax(0.01, var(u, na.rm = TRUE) / var(resid, na.rm = TRUE)))
   bym <- lm((y - 0.65 * u) ~ x)
   list(
     resid = resid,
