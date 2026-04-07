@@ -4,7 +4,7 @@ title:
 ---
 
 <section class="home-section">
-  <p class="lead">Small interactive tools and visualizations. They are meant to be slightly technical and fun. The goal is to provide a means to learn about how similarities in near by areas induce a spatial structure that can be informative when observing diseas or other ecological variables on a map</p>
+  <p class="lead">Small interactive tools and visualizations. They are meant to be slightly technical and fun. The goal is to provide a means to learn about how similarities in near by areas induce a spatial structure that can be informative when observing disease cases or other ecological variables on a map</p>
 
   <div class="project-list">
     <div class="project-item">
