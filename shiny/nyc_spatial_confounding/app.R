@@ -190,7 +190,8 @@ ui <- fluidPage(
 )
 
 server <- function(input, output, session) {
-  data_bundle <- eventReactive(input$reload, {
+  # Loads ACS + geometries — only re-runs on Reload button
+  raw_data <- eventReactive(input$reload, {
     withProgress(message = "Loading ACS + TIGER data", value = 0, {
       incProgress(0.2, detail = "Fetching ACS")
       acs <- fetch_acs(year = as.integer(input$year), key = CENSUS_KEY)
@@ -203,13 +204,17 @@ server <- function(input, output, session) {
         left_join(acs, by = c("GEOID" = "geoid")) %>%
         filter(!is.na(uninsured_rate), !is.na(poverty_rate), !is.na(unemployment_rate))
 
-      incProgress(0.85, detail = "Fitting models")
-      modeled <- fit_models(sf_dat, predictor_col = input$predictor, y_col = "uninsured_rate")
-
       incProgress(1)
-      list(sf = modeled)
+      list(sf_dat = sf_dat)
     })
   }, ignoreNULL = FALSE)
+
+  # Fits models — re-runs whenever predictor changes OR new data is loaded
+  data_bundle <- reactive({
+    rd <- raw_data()
+    modeled <- fit_models(rd$sf_dat, predictor_col = input$predictor, y_col = "uninsured_rate")
+    list(sf = modeled)
+  })
 
   output$metrics <- renderUI({
     sf_dat <- data_bundle()$sf
@@ -258,20 +263,32 @@ server <- function(input, output, session) {
 
   output$scatter_ols <- renderPlot({
     sf_dat <- data_bundle()$sf %>% st_drop_geometry()
+    pred_label <- switch(input$predictor,
+      poverty_rate     = "Poverty Rate (%)",
+      unemployment_rate = "Unemployment Rate (%)",
+      input$predictor
+    )
     ggplot(sf_dat, aes(x = predictor, y = outcome)) +
-      geom_point(alpha = 0.5, color = "#7fb3ff") +
-      geom_smooth(method = "lm", se = FALSE, color = "#e05c6a", linewidth = 1.2) +
+      geom_point(aes(color = "Census Tract"), alpha = 0.5) +
+      geom_smooth(aes(color = "OLS Fit"), method = "lm", se = FALSE, linewidth = 1.2) +
+      scale_color_manual(
+        name = NULL,
+        values = c("Census Tract" = "#7fb3ff", "OLS Fit" = "#e05c6a")
+      ) +
       theme_minimal(base_size = 13) +
       labs(
-        x = input$predictor,
-        y = "uninsured_rate",
+        x = pred_label,
+        y = "Uninsured Rate (%)",
         title = "Naive OLS relationship"
       ) +
       theme(
         panel.background = element_rect(fill = "#0e1117", color = NA),
         plot.background = element_rect(fill = "#0e1117", color = NA),
         text = element_text(color = "#e2e8f4"),
-        axis.text = element_text(color = "#e2e8f4")
+        axis.text = element_text(color = "#e2e8f4"),
+        legend.position = "top",
+        legend.background = element_rect(fill = "#161b25", color = NA),
+        legend.key = element_rect(fill = "#0e1117", color = NA)
       )
   })
 
@@ -321,17 +338,30 @@ server <- function(input, output, session) {
     ggplot(plot_dat, aes(x = model, y = coef, fill = model)) +
       geom_col(width = 0.55) +
       geom_hline(yintercept = 0, color = "#7a8aaa", linewidth = 0.4) +
-      annotate("text", x = 1.5, y = max(plot_dat$coef) * 0.9, label = sprintf("phi = %.2f", phi), color = "#e2e8f4") +
-      scale_fill_manual(values = c("Naive OLS" = "#e05c6a", "Spatial-adjusted" = "#4f8ef7")) +
+      annotate(
+        "text", x = 1.5, y = max(abs(plot_dat$coef)) * 0.9,
+        label = sprintf("\u03c6 = %.2f (structured share)", phi),
+        color = "#e2e8f4", size = 3.8
+      ) +
+      scale_fill_manual(
+        name = "Model",
+        values = c("Naive OLS" = "#e05c6a", "Spatial-adjusted" = "#4f8ef7")
+      ) +
       theme_minimal(base_size = 13) +
       theme(
-        legend.position = "none",
+        legend.position = "top",
+        legend.background = element_rect(fill = "#161b25", color = NA),
+        legend.key = element_rect(fill = "#0e1117", color = NA),
         panel.background = element_rect(fill = "#0e1117", color = NA),
         plot.background = element_rect(fill = "#0e1117", color = NA),
         text = element_text(color = "#e2e8f4"),
         axis.text = element_text(color = "#e2e8f4")
       ) +
-      labs(title = "Coefficient comparison", x = NULL, y = "Slope")
+      labs(
+        title = "Coefficient comparison",
+        x = "Model",
+        y = "Slope (predictor coefficient)"
+      )
   })
 }
 
