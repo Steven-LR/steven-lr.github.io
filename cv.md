@@ -5,11 +5,10 @@ permalink: /cv/
 ---
 
 <div class="card">
-  <p class="lead">This is the longer-form academic/professional CV that sits alongside the 1-page <a href="{{ '/resume/' | relative_url }}">resume</a>. Workshop and teaching highlights are on the <a href="{{ '/' | relative_url }}#teaching">home page (Teaching)</a>; project writeups are under <a href="{{ '/' | relative_url }}#projects">Projects</a> on the home page.</p>
+  <p class="lead">This is the primary long-form academic and professional CV. Workshop and teaching highlights are on the <a href="{{ '/' | relative_url }}#teaching">home page (Teaching)</a>, and project writeups are under <a href="{{ '/' | relative_url }}#projects">Projects</a> on the home page.</p>
 </div>
 
 <ul class="inline-links">
-  <li><a href="{{ '/resume/' | relative_url }}">Resume</a></li>
   <li><a href="{{ '/' | relative_url }}#teaching">Teaching</a></li>
   <li><a href="{{ '/' | relative_url }}#projects">Projects</a></li>
 </ul>
@@ -48,11 +47,7 @@ permalink: /cv/
 <div class="cv-entry">
   <div class="cv-entry__title">Graduate Research Assistant (Doctoral Training)</div>
   <div class="cv-entry__meta">Vilcek School of Biomedical Sciences, 2021–Present</div>
-  <ul>
-    <li>Bayesian hierarchical and spatial models to quantify access to services in NYC.</li>
-    <li>HIPAA-compliant GIS pipelines on HPC (Singularity, terminal-based workflows).</li>
-    <li>Patient-preferred pharmacy proximity metrics used to quantify barriers to care.</li>
-  </ul>
+  <p>I develop Bayesian hierarchical and spatial models to quantify barriers to care and service access across NYC neighborhoods. I built HIPAA-compliant geospatial workflows on HPC infrastructure (including Singularity- and terminal-based pipelines) so analyses can be reproduced securely at scale. I also developed patient-preferred pharmacy proximity metrics that are now used to evaluate access gaps and support translational public-health recommendations.</p>
 </div>
 
 ### Icahn School of Medicine at Mount Sinai
@@ -60,37 +55,30 @@ permalink: /cv/
 <div class="cv-entry">
   <div class="cv-entry__title">Biostatistician / Data Scientist (Consulting &amp; Collaborative Research)</div>
   <div class="cv-entry__meta">2020–2026</div>
-  <p>Collaborative biostatistics and applied data science across clinical research, quality improvement, and program evaluation. Work has engaged multiple labs and institutional programs, including the <strong>PAIRED lab</strong>, <strong>Center for Scientific Workforce Excellence and Advancement (CSWEA)</strong>, <strong>Center for Scientific Diversity</strong>, <strong>Center for Biostatistics</strong>, the <strong>Disparities Analytics Task Force</strong>, and the <strong>Graduate School of Biomedical Sciences</strong> (e.g., enrollment analytics).</p>
-  <ul>
-    <li>Supervised master’s-level statisticians on quality improvement and automated quality-metrics reporting (2023–2026).</li>
-    <li>Led autonomic heart rate variability (HRV) analyses and phenotyping supporting first- and second-author publications; developed and maintain the <em>tidyRHRV</em> / <a href="https://github.com/steven-lr/tidyrhrv">tidyrhrv</a> package on CRAN (2021–2025).</li>
-    <li>Built web-scraping and PubMed API tooling for bibliometric reporting to leadership (2023–2024).</li>
-    <li>Telehealth utilization analyses pre/during/post shutdown; stakeholder briefings (2021–2022).</li>
-    <li>COVID Wave 1: geospatial maps and testing vs. positivity analyses to inform allocation decisions (2020).</li>
-  </ul>
+  <p>I provide collaborative biostatistics and applied data science support across clinical research, quality improvement, and workforce/program evaluation projects at Mount Sinai. This work has included teams and institutional initiatives such as the <strong>PAIRED lab</strong>, <strong>CSWEA</strong>, the <strong>Center for Biostatistics</strong>, the <strong>Disparities Analytics Task Force</strong>, and the <strong>Graduate School of Biomedical Sciences</strong>. Across these collaborations, I have supervised master’s-level statisticians, led HRV phenotyping analyses that supported first- and second-author publications, maintained the <em>tidyRHRV</em> / <a href="https://github.com/steven-lr/tidyrhrv">tidyrhrv</a> CRAN package, and delivered operational analytics for telehealth, bibliometrics, and COVID-era geographic allocation decisions.</p>
   <p><strong>Earlier training at Mount Sinai (2018–2020):</strong> Graduate internship and volunteer roles through the Center for Biostatistics—REDCap program evaluation (HSMSE Biomedical Enrichment), discrimination-related outcomes modeling, Google Trends surveillance (Emergency Medicine Health Disparities program), mediation and power for clinical studies, methods simulation work, and the ASA This Is Statistics Data Challenge. (Mentors included Emma Benn, DrPH; Jessica Robinson-Papp, MD, MS; and others.) More detail on the <a href="{{ '/' | relative_url }}#projects">Projects</a> section of the home page.</p>
 </div>
 
-### Other employers and consulting
+### Other consulting
 
 <div class="cv-entry">
   <div class="cv-entry__title">Data Science Consultant</div>
   <div class="cv-entry__meta">Graham Windham, 2023–2025</div>
-  <ul>
-    <li>Leadership dashboards and predictive models for foster care mental health interventions; executive-facing reporting.</li>
-    <li>Secure GIS pipeline for geospatial analytics and reproducible processing to quantify access to high-quality education.</li>
-  </ul>
+  <p>I built leadership dashboards and predictive analytics workflows to support planning and evaluation of foster-care mental health interventions. My deliverables translated statistical findings into executive-facing reporting that could be used in program strategy discussions and operational prioritization. I also designed a secure GIS pipeline for reproducible geospatial analysis to quantify access to high-quality educational opportunities across service areas.</p>
 </div>
 
 <div class="cv-entry">
   <div class="cv-entry__title">Data Science Intern — ML fairness evaluation</div>
   <div class="cv-entry__meta">Nationwide Financial Services, Summer 2021</div>
+  <p>I supported model-audit work focused on fairness and subgroup performance for machine-learning workflows used in financial-services contexts. The internship emphasized rigorous evaluation design, transparent communication of performance disparities, and practical recommendations for model governance. I contributed analysis and documentation that helped frame fairness checks as part of routine model validation rather than a one-time exercise.</p>
 </div>
 
 <div class="cv-entry">
-  <div class="cv-entry__title">Additional short-term roles</div>
+  <div class="cv-entry__title">Other opportunities</div>
   <div class="cv-entry__meta">Selected</div>
-  <p>Memorial Sloan Kettering (Project Manager, Bridge to Biostatistics; Summer 2025); Hampton University (R Workshop Instructor; Summer 2024); UAB (biostatistical consultation, NIS survey-weighted analyses; Fall 2021).</p>
+  <p><strong>Memorial Sloan Kettering (Summer 2025):</strong> Project Manager for Bridge to Biostatistics, supporting program coordination, trainee-facing deliverables, and outcomes tracking.</p>
+  <p><strong>Hampton University (Summer 2024):</strong> R Workshop Instructor, delivering applied training sessions on reproducible analysis workflows and statistical programming foundations.</p>
+  <p><strong>UAB (Fall 2021):</strong> Biostatistical consultant for National Inpatient Sample analyses, including survey-weighted modeling and interpretation for clinical research teams.</p>
 </div>
 
 ## Teaching Summary
