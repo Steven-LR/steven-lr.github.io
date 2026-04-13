@@ -24,6 +24,7 @@ title:
       <p><a href="{{ '/apps/bym2_explorer.html' | relative_url }}">Open app</a></p>
     </div>
 
+    <!-- Hidden for now
     <div class="project-item">
       <a class="app-preview" href="{{ '/apps/nyc_spatial_confounding_guide.html' | relative_url }}" aria-label="Open Spatial Confounding in NYC Health Data (single-file app)">
         <img
@@ -40,5 +41,6 @@ title:
       <p>Single-file app with precomputed ACS + tract geometry joins from R (<code>tidycensus</code> + <code>tigris</code>), rendered with Leaflet choropleths and in-browser diagnostics.</p>
       <p><a href="{{ '/apps/nyc_spatial_confounding_guide.html' | relative_url }}">Open app</a></p>
     </div>
+    -->
   </div>
 </section>
