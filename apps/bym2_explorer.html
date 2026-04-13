@@ -1949,12 +1949,17 @@ function runSimulation(huntMode = false) {
     `p-value: ${mr.pval < 0.001 ? '<0.001' : mr.pval.toFixed(4)}`;
 
   const badge = document.getElementById('stat-badge');
-  if (mr.I > 0.1 && mr.pval < 0.05) {
-    badge.textContent = 'Positive clustering'; badge.className = 'interp-badge badge-cluster';
-  } else if (mr.I < -0.05 && mr.pval < 0.05) {
-    badge.textContent = 'Dispersed pattern'; badge.className = 'interp-badge badge-dispersed';
+  if (mr.pval < 0.05) {
+    if (mr.I >= 0) {
+      badge.textContent = 'Significant positive autocorr.';
+      badge.className = 'interp-badge badge-cluster';
+    } else {
+      badge.textContent = 'Significant negative autocorr.';
+      badge.className = 'interp-badge badge-dispersed';
+    }
   } else {
-    badge.textContent = 'No significant autocorr.'; badge.className = 'interp-badge badge-random';
+    badge.textContent = 'No significant autocorr.';
+    badge.className = 'interp-badge badge-random';
   }
 
   // Tries pill
