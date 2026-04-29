@@ -48,6 +48,10 @@ permalink: /cv/
   <div class="cv-entry__title">Graduate Research Assistant (Doctoral Training)</div>
   <div class="cv-entry__meta">Vilcek School of Biomedical Sciences, 2021–Present</div>
   <p>I built Bayesian hierarchical spatial models — including sensitivity analyses of hyper priors in the Besag–York–Mollié 2 (BYM2) model. I also derived implementation of a penalized complexity prior in a full Bayesian context via STAN, normally limited to approximation frameworks like INLA. I assessed model choices in gravity based models like the two-step floating catchment area (2SFCA) methods when quantifying pharmacy access. My dissertation bridges spatial disease-mapping methods and health-service access research, examining how modeling choices affect substantive conclusions. I built geospatial workflows on HPC infrastructure so analyses are reproducible at scale and have organized them into packages. I developed HIPAA-compliant HPC workflows to calculate patient-preferred pharmacy proximity metrics directly with PHI now used to evaluate access gaps and support translational public-health research.</p>
+
+  <p>
+  Dissertation Advisors: Samrachana Adhikari, PhD; Keith Goldfeld, PhD
+  </p>
 </div>
 
 ### Icahn School of Medicine at Mount Sinai
