@@ -121,3 +121,7 @@ permalink: /cv/
     <li><strong>Characterization of Novel Brooklyn Soil Bacteria Secondary Metabolites</strong>: Characterized novel antibiotic compounds from soil bacterium; included fieldwork in Montserrat and community-facing scientific discussions. Mentor: Carolle Bolnet, PhD.</li>
   </ul>
 </div>
+
+
+## Presentations and Conferences
+
