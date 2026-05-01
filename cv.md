@@ -22,6 +22,15 @@ permalink: /cv/
   <p><strong>Google Scholar:</strong> <a href="https://scholar.google.com/citations?user=OmOghxUAAAAJ&hl=en">Profile</a></p>
 </div>
 
+## AI & Automation Skills
+
+<div class="card">
+  <p>
+    I am adept at leveraging modern AI tools to accelerate research and analysis, with particular proficiency in using <strong>Claude</strong> (Anthropic's LLM) for code generation, data analysis, and workflow automation. I actively build "skills" to streamline repetitive tasks, and assist in writing and debugging code. .
+  </p>
+</div>
+
+
 ## Education
 
 <div class="cv-entry">
@@ -123,5 +132,5 @@ permalink: /cv/
 </div>
 
 
-## Presentations and Conferences
+
 
