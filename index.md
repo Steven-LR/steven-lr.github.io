@@ -10,7 +10,7 @@ show_title: false
       <div class="profile-card">
         <img src="{{ '/assets/img/steven-lawrence-headshot.jpg' | relative_url }}" alt="Steven Lawrence headshot" />
         <div class="profile-name">Steven Lawrence</div>
-        <div class="profile-role">Doctoral Candidate</div>
+        <div class="profile-role">PhD Biostatistician</div>
         <div class="profile-org">NYU Grossman School of Medicine</div>
         <div class="social-links">
           <a href="mailto:steven.lawrence@nyulangone.org" aria-label="Email">
@@ -38,7 +38,7 @@ show_title: false
 
       <div>
         <h2>Biography</h2>
-        <p class="lead">I am a biostatistician and PhD candidate at NYU Grossman School of Medicine. My work focuses on Bayesian and spatial modeling in clinical research and health. I enjoy using statistics to better understand complex data, especially in the context of translational research. I am also the CRAN author and maintainer of <em>tidyRHRV</em>.</p>
+        <p class="lead">I am a PhD biostatistician. My work focuses on Bayesian and spatial modeling in clinical research and health. I enjoy using statistics to better understand complex data, especially in the context of translational research. I am also the CRAN author and maintainer of <em>tidyRHRV</em>.</p>
 
         <div class="section-grid">
           <div class="list-card">
@@ -54,7 +54,7 @@ show_title: false
           <div class="list-card">
             <h3>Education</h3>
             <ul>
-              <li>PhD, Biostatistics, New York University, expected May 2026</li>
+              <li>PhD, Biostatistics, New York University, May 2026</li>
               <li>MS, Biostatistics, Columbia University, May 2021</li>
               <li>BS, Biology (Math Minor), CUNY Medgar Evers College, Jun 2019</li>
             </ul>
@@ -165,7 +165,7 @@ show_title: false
       </p>
 
       <p>
-      I am currently a biostatistics doctoral candidate whose research focused on measuring access to health care, and assessing sensitivity in spatial models. I am experienced in analyzing complex population-level data to understand how place, access, and structural factors influence health outcomes. My work has involved integrating multiple data sources, accounting for uncertainty, and developing methods that better capture real-world conditions to support public health decision-making.
+      My doctoral research focused on measuring access to health care and assessing sensitivity in spatial models. I analyze complex population-level data to understand how place, access, and structural factors influence health outcomes. My work has involved integrating multiple data sources, accounting for uncertainty, and developing methods that better capture real-world conditions to support public health decision-making.
       </p>
 
       <p>
