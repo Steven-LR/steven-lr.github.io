@@ -4,24 +4,6 @@ title:
 permalink: /cv/
 ---
 
-<div class="card">
-  <p class="lead">Long-form academic and professional CV. Teaching details are on the <a href="{{ '/' | relative_url }}#teaching">home page (Teaching)</a>; project writeups are under <a href="{{ '/' | relative_url }}#projects">Projects</a>.</p>
-</div>
-
-<ul class="inline-links">
-  <li><a href="{{ '/' | relative_url }}#teaching">Teaching</a></li>
-  <li><a href="{{ '/' | relative_url }}#projects">Projects</a></li>
-</ul>
-
-## Contact
-
-<div class="card">
-  <p><strong>Location:</strong> New York, NY</p>
-  <p><strong>Email:</strong> <a href="mailto:steven.lawrence@nyulangone.org">steven.lawrence@nyulangone.org</a></p>
-  <p><strong>Website:</strong> <a href="https://steven-lr.github.io/">steven-lr.github.io</a></p>
-  <p><strong>Google Scholar:</strong> <a href="https://scholar.google.com/citations?user=OmOghxUAAAAJ&hl=en">Profile</a></p>
-</div>
-
 ## Summary
 
 <div class="card">
@@ -195,4 +177,22 @@ permalink: /cv/
     <li><strong>Mathematical modeling:</strong> Pascal’s triangle and concentration variance. Mentor: Jean Jean-Michel, PhD.</li>
     <li><strong>Soil bacteria secondary metabolites:</strong> Characterized novel antibiotic compounds from soil bacterium; fieldwork in Montserrat. Mentor: Carolle Bolnet, PhD.</li>
   </ul>
+</div>
+
+<div class="card">
+  <p class="lead">Long-form academic and professional CV. Teaching details are on the <a href="{{ '/' | relative_url }}#teaching">home page (Teaching)</a>; project writeups are under <a href="{{ '/' | relative_url }}#projects">Projects</a>.</p>
+</div>
+
+<ul class="inline-links">
+  <li><a href="{{ '/' | relative_url }}#teaching">Teaching</a></li>
+  <li><a href="{{ '/' | relative_url }}#projects">Projects</a></li>
+</ul>
+
+## Contact
+
+<div class="card">
+  <p><strong>Location:</strong> New York, NY</p>
+  <p><strong>Email:</strong> <a href="mailto:steven.lawrence@nyulangone.org">steven.lawrence@nyulangone.org</a></p>
+  <p><strong>Website:</strong> <a href="https://steven-lr.github.io/">steven-lr.github.io</a></p>
+  <p><strong>Google Scholar:</strong> <a href="https://scholar.google.com/citations?user=OmOghxUAAAAJ&hl=en">Profile</a></p>
 </div>
