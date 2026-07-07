@@ -1,6 +1,7 @@
 ---
 layout: default
-title: 
+title: CV
+show_title: false
 permalink: /cv/
 ---
 
