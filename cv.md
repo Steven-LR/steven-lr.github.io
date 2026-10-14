@@ -8,7 +8,7 @@ permalink: /cv/
 ## Summary
 
 <div class="card">
-  <p>Collaborative researcher and biostatistician working in Bayesian hierarchical spatial models, longitudinal analysis, and geospatial analytics. Experience building HIPAA-compliant geospatial pipelines and R packages for multi-disciplinary clinical and public health teams. Communicates statistical methodology to clinical, program, and policy audiences.</p>
+  <p>Research Scientist at the New York State Office of Addiction Services and Supports (OASAS), Evaluation Bureau. Collaborative biostatistician working in Bayesian hierarchical spatial models, longitudinal analysis, geospatial analytics, and program evaluation, including medications for addiction treatment in carceral settings and workforce initiatives. Experience building HIPAA-compliant geospatial pipelines and R packages for multi-disciplinary clinical and public health teams. Communicates statistical methodology to clinical, program, and policy audiences.</p>
 </div>
 
 ## Education
@@ -29,6 +29,18 @@ permalink: /cv/
 </div>
 
 ## Research and Work Experience
+
+### New York State Office of Addiction Services and Supports
+
+<div class="cv-entry">
+  <div class="cv-entry__title">Research Scientist</div>
+  <div class="cv-entry__meta">Evaluation Bureau, Mixed Methods Group · 2026–present</div>
+  <ul>
+    <li>Evaluate medications for addiction treatment delivered in carceral settings.</li>
+    <li>Co-lead the bureau’s geospatial working group, supporting spatial analysis across evaluation projects and taking on a broader leadership role in that work.</li>
+    <li>Evaluate OASAS workforce initiatives, including support services and related programs, and their impact on the communities they serve.</li>
+  </ul>
+</div>
 
 ### New York University Grossman School of Medicine
 
@@ -193,7 +205,8 @@ permalink: /cv/
 
 <div class="card">
   <p><strong>Location:</strong> New York, NY</p>
-  <p><strong>Email:</strong> <a href="mailto:steven.lawrence@nyulangone.org">steven.lawrence@nyulangone.org</a></p>
+  <p><strong>Work email:</strong> <a href="mailto:steven.lawrence@oasas.ny.gov">steven.lawrence@oasas.ny.gov</a></p>
+  <p><strong>Personal email:</strong> <a href="mailto:itws.lawrence@gmail.com">itws.lawrence@gmail.com</a></p>
   <p><strong>Website:</strong> <a href="https://steven-lr.github.io/">steven-lr.github.io</a></p>
   <p><strong>Google Scholar:</strong> <a href="https://scholar.google.com/citations?user=OmOghxUAAAAJ&hl=en">Profile</a></p>
 </div>

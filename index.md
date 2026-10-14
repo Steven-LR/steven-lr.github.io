@@ -10,10 +10,14 @@ show_title: false
       <div class="profile-card">
         <img src="{{ '/assets/img/steven-lawrence-headshot.jpg' | relative_url }}" alt="Steven Lawrence headshot" />
         <div class="profile-name">Steven Lawrence</div>
-        <div class="profile-role">PhD Biostatistician</div>
-        <div class="profile-org">NYU Grossman School of Medicine</div>
+        <div class="profile-role">Research Scientist</div>
+        <div class="profile-org">
+          New York State Office of Addiction Services and Supports<br>
+          <a href="mailto:steven.lawrence@oasas.ny.gov">steven.lawrence@oasas.ny.gov</a><br>
+          <a href="mailto:itws.lawrence@gmail.com">itws.lawrence@gmail.com</a>
+        </div>
         <div class="social-links">
-          <a href="mailto:steven.lawrence@nyulangone.org" aria-label="Email">
+          <a href="mailto:steven.lawrence@oasas.ny.gov" aria-label="Work email">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M3 5.5A2.5 2.5 0 0 1 5.5 3h13A2.5 2.5 0 0 1 21 5.5v13a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 18.5zm2 .5v.32l7 5.25 7-5.25V6zm14 2.82-6.4 4.8a1 1 0 0 1-1.2 0L5 8.82V18.5c0 .28.22.5.5.5h13a.5.5 0 0 0 .5-.5z"/>
             </svg>
@@ -38,7 +42,7 @@ show_title: false
 
       <div>
         <h2>Biography</h2>
-        <p class="lead">I am a PhD biostatistician. My work focuses on Bayesian and spatial modeling in clinical research and health. I enjoy using statistics to better understand complex data, especially in the context of translational research. I am also the CRAN author and maintainer of <em>tidyRHRV</em>.</p>
+        <p class="lead">I am a research scientist at the New York State Office of Addiction Services and Supports and a PhD biostatistician. My work focuses on program evaluation, Bayesian and spatial modeling, and geospatial analysis in addiction services and health. I am also the CRAN author and maintainer of <em>tidyRHRV</em>.</p>
 
         <div class="section-grid">
           <div class="list-card">
