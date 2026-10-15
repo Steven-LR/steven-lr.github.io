@@ -34,7 +34,7 @@ permalink: /cv/
 
 <div class="cv-entry">
   <div class="cv-entry__title">Research Scientist</div>
-  <div class="cv-entry__meta">Research and Program Evaluation, Mixed Methods Group · 2026–present<br>Director: Ashly Jordan, PhD</div>
+  <div class="cv-entry__meta">Research and Program Evaluation, Mixed Methods Group · 2026–present<br>Director: Ashly Jordan, PhD; Supervisor: Katharine Bloesor, PhD</div>
   <ul>
     <li>Evaluate medications for addiction treatment delivered in carceral settings.</li>
     <li>Co-lead the bureau’s geospatial working group, supporting spatial analysis across evaluation projects and taking on a broader leadership role in that work.</li>
