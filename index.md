@@ -42,7 +42,7 @@ show_title: false
 
       <div>
         <h2>Biography</h2>
-        <p class="lead">I am a research scientist at the New York State Office of Addiction Services and Supports and a PhD biostatistician. My work focuses on program evaluation, Bayesian and spatial modeling, and geospatial analysis in addiction services and health. I am also the CRAN author and maintainer of <em>tidyRHRV</em>.</p>
+        <p class="lead">I am a PhD biostatistician and a Research Scientist at the New York State Office of Addiction Services and Supports (OASAS). In my role at OASAS, I focus on program evaluation and geospatial analysis supporting addiction treatment and workforce initiatives across New York State. As a biostatistician, my doctoral training focused on Bayesian and spatial modeling, and I enjoy using statistics to better understand complex data across clinical, observational, and translational health research. I am also the CRAN author and maintainer of <em>tidyRHRV</em>.</p>
 
         <div class="section-grid">
           <div class="list-card">

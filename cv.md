@@ -8,7 +8,7 @@ permalink: /cv/
 ## Summary
 
 <div class="card">
-  <p>Research Scientist at the New York State Office of Addiction Services and Supports (OASAS), Research and Program Evaluation. Collaborative biostatistician working in Bayesian hierarchical spatial models, longitudinal analysis, geospatial analytics, and program evaluation, including medications for addiction treatment in carceral settings and workforce initiatives. Experience building HIPAA-compliant geospatial pipelines and R packages for multi-disciplinary clinical and public health teams. Communicates statistical methodology to clinical, program, and policy audiences.</p>
+  <p>I am a collaborative PhD biostatistician and a Research Scientist in Research and Program Evaluation at the New York State Office of Addiction Services and Supports (OASAS). At OASAS, I apply quantitative and geospatial analysis to evaluate statewide addiction services and workforce programs. My doctoral research and broader work as a biostatistician center on Bayesian hierarchical spatial modeling, observational studies, and building HIPAA-compliant geospatial pipelines and R packages for multidisciplinary clinical and public health teams. Across both my applied evaluation work and methodological research, I focus on translating complex statistical methods into clear, actionable insights for clinical, program, and policy audiences.</p>
 </div>
 
 ## Education
