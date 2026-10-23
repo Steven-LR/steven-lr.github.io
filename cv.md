@@ -128,6 +128,8 @@ permalink: /cv/
 <div class="cv-entry">
   <div class="cv-entry__title">Other roles</div>
   <div class="cv-entry__meta">Selected</div>
+  <p><strong>Educators for Excellence, NYC Math Revolution Convening (October 2026):</strong> Panelist on how math is used in public health and addiction-services work.</p>
+  <p><strong>Columbia University Mailman School of Public Health (October 2026):</strong> Alumni panel speaker for the Department of Biostatistics.</p>
   <p><strong>Memorial Sloan Kettering (2023–2025):</strong> Recurring guest speaker at "Bridge to Biostatistics" days; project manager for the Bridge to Biostatistics summer program (Summer 2025).</p>
   <p><strong>Hampton University (Summer 2024):</strong> R workshop instructor.</p>
   <p><strong>University of Alabama at Birmingham (Fall 2021):</strong> Biostatistics consultation for a doctoral student (National Inpatient Sample, survey-weighted modeling).</p>
